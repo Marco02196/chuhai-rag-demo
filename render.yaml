@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: chuhai-rag-demo
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /readyz
+    envVars:
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: APP_API_KEY
+        sync: false
+      - key: LLM_BASE_URL
+        value: https://api.deepseek.com
+      - key: LLM_MODEL
+        value: deepseek-chat
+      - key: RAG_DB_PATH
+        value: /app/output/30tian_chuhai.sqlite

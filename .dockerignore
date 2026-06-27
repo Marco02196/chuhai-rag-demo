@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+*.log
+set_deepseek_key.ps1
+test_*.py
