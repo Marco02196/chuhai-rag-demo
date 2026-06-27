@@ -176,12 +176,13 @@ def normalized_headers(handler: BaseHTTPRequestHandler) -> dict[str, str]:
 
 
 def check_auth(headers: dict[str, str], expected_api_key: str | None) -> bool:
+    expected_api_key = (expected_api_key or "").strip()
     if not expected_api_key:
         return True
-    authorization = headers.get("authorization", "")
+    authorization = headers.get("authorization", "").strip()
     if authorization == f"Bearer {expected_api_key}":
         return True
-    return headers.get("x-api-key") == expected_api_key
+    return headers.get("x-api-key", "").strip() == expected_api_key
 
 
 def source_payload(context: dict) -> dict:
