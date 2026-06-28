@@ -251,7 +251,7 @@ def render_index_html() -> str:
           <input id="accessCode" type="password" placeholder="访问码" autocomplete="current-password" />
           <button id="ask" class="primary">生成策略建议</button>
         </div>
-        <div class="hint">公网试点需要填写访问码；本地无访问码配置时可留空。</div>
+        <div class="hint">请输入演示访问码后生成建议。访问码由项目负责人提供。</div>
         <div class="result-grid">
           <div id="answer" class="answer">等待提问。</div>
           <div id="sources" class="sources"></div>
