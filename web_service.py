@@ -21,59 +21,224 @@ def render_index_html() -> str:
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>出海投放 AI 军师</title>
   <style>
-    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    body { margin: 0; background: #0d1117; color: #f8fafc; }
-    main { max-width: 1120px; margin: 0 auto; padding: 28px 18px 46px; }
-    .hero { display: grid; grid-template-columns: 1.08fr .92fr; gap: 22px; align-items: end; padding: 26px 0 20px; }
-    h1 { font-size: clamp(34px, 6vw, 64px); line-height: 1.02; margin: 0 0 14px; letter-spacing: 0; }
-    h2 { font-size: 18px; margin: 0 0 12px; }
-    p { color: #a8b3c7; line-height: 1.65; }
-    .eyebrow { color: #62d58a; font-weight: 700; margin-bottom: 12px; }
-    .panel { border: 1px solid #263040; background: #121821; border-radius: 8px; padding: 18px; }
-    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
-    .metric { border: 1px solid #263040; border-radius: 8px; padding: 12px; background: #0f141c; }
-    .metric strong { display: block; font-size: 22px; color: #ffffff; }
-    .metric span { color: #95a3b8; font-size: 13px; }
-    .app { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; align-items: start; }
-    textarea, select, input, button { font: inherit; }
-    textarea { width: 100%; min-height: 150px; resize: vertical; box-sizing: border-box; padding: 14px; border: 1px solid #2b3546; border-radius: 8px; background: #0d121a; color: #fff; }
-    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 12px 0; }
-    select, input { padding: 10px; border-radius: 8px; border: 1px solid #2b3546; background: #0d121a; color: #fff; }
-    button { padding: 11px 18px; border: 0; border-radius: 8px; background: #62d58a; color: #07130c; font-weight: 800; cursor: pointer; }
-    button:disabled { opacity: .65; cursor: wait; }
-    .answer, .sources { margin-top: 14px; padding: 16px; border: 1px solid #263040; border-radius: 8px; background: #0d121a; white-space: pre-wrap; line-height: 1.72; }
-    .sources { white-space: normal; color: #d4d4d8; overflow-wrap: anywhere; }
-    .sample-group { margin-top: 14px; }
-    .sample-group h3 { margin: 0 0 8px; color: #8ea0ba; font-size: 13px; font-weight: 700; }
-    .samples button { display: block; width: 100%; text-align: left; margin: 8px 0; background: #182231; color: #dbeafe; font-weight: 650; }
-    .hint { font-size: 13px; color: #8ea0ba; }
-    .error { color: #fda4af; }
-    @media (max-width: 820px) { .hero, .app { grid-template-columns: 1fr; } .metrics { grid-template-columns: 1fr; } }
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f7fb;
+      color: #182230;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f4f7fb; color: #182230; }
+    button, textarea, select, input { font: inherit; }
+    button { cursor: pointer; }
+    .shell { min-height: 100vh; }
+    .topbar {
+      border-bottom: 1px solid #d9e0ea;
+      background: rgba(255,255,255,.92);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+    .topbar-inner {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 900;
+      background: linear-gradient(135deg, #0f766e, #2563eb);
+    }
+    h1 { font-size: 20px; line-height: 1.2; margin: 0; letter-spacing: 0; }
+    .subline { margin-top: 3px; color: #667085; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .status { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .pill {
+      border: 1px solid #d0d9e6;
+      background: #fff;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 13px;
+      color: #344054;
+    }
+    main { max-width: 1240px; margin: 0 auto; padding: 22px 20px 42px; }
+    .summary {
+      display: grid;
+      grid-template-columns: 1.4fr repeat(3, minmax(150px, .5fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .intro, .stat, .workspace-panel {
+      background: #fff;
+      border: 1px solid #d9e0ea;
+      border-radius: 8px;
+      box-shadow: 0 12px 34px rgba(24,34,48,.06);
+    }
+    .intro { padding: 16px 18px; }
+    .intro strong { display: block; font-size: 17px; margin-bottom: 4px; }
+    .intro span { color: #667085; line-height: 1.55; font-size: 14px; }
+    .stat { padding: 15px; }
+    .stat strong { display: block; font-size: 24px; color: #101828; }
+    .stat span { color: #667085; font-size: 13px; }
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 16px;
+      align-items: start;
+    }
+    .workspace-panel { padding: 18px; }
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    h2 { font-size: 18px; margin: 0; letter-spacing: 0; }
+    .panel-note { color: #667085; font-size: 13px; }
+    textarea {
+      width: 100%;
+      min-height: 156px;
+      resize: vertical;
+      padding: 15px;
+      border: 1px solid #c9d3e1;
+      border-radius: 8px;
+      background: #fbfdff;
+      color: #182230;
+      line-height: 1.6;
+      outline: none;
+    }
+    textarea:focus, select:focus, input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(170px, 1fr) 84px minmax(170px, 1fr) 170px;
+      gap: 10px;
+      margin-top: 12px;
+      align-items: center;
+    }
+    select, input {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #c9d3e1;
+      background: #fff;
+      color: #182230;
+    }
+    .primary {
+      min-height: 44px;
+      border: 0;
+      border-radius: 8px;
+      background: #0f766e;
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 10px 20px rgba(15,118,110,.18);
+    }
+    .primary:hover { background: #115e59; }
+    .primary:disabled { opacity: .72; cursor: wait; box-shadow: none; }
+    .hint { margin-top: 10px; color: #667085; font-size: 13px; }
+    .result-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 14px; }
+    .answer, .sources {
+      border: 1px solid #d9e0ea;
+      border-radius: 8px;
+      background: #fbfdff;
+      padding: 16px;
+      min-height: 58px;
+      line-height: 1.75;
+    }
+    .answer { white-space: pre-wrap; color: #182230; }
+    .sources { color: #344054; overflow-wrap: anywhere; }
+    .source-card {
+      border-top: 1px solid #e4eaf2;
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+    .source-card:first-of-type { border-top: 0; margin-top: 8px; padding-top: 0; }
+    .source-title { font-weight: 800; color: #182230; }
+    .source-path { color: #667085; font-size: 12px; margin-top: 4px; }
+    .sidebar { display: grid; gap: 12px; }
+    .sample-group { border-top: 1px solid #e4eaf2; padding-top: 13px; }
+    .sample-group:first-of-type { border-top: 0; padding-top: 0; }
+    .sample-group h3 { margin: 0 0 8px; color: #475467; font-size: 13px; font-weight: 800; }
+    .samples button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      margin: 7px 0;
+      padding: 11px 12px;
+      border: 1px solid #e4eaf2;
+      border-radius: 8px;
+      background: #f7faff;
+      color: #1d2939;
+      font-weight: 720;
+    }
+    .samples button:hover { border-color: #b7c6db; background: #eef6ff; }
+    .tag-row { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
+    .tag { font-size: 12px; color: #475467; background: #eef2f7; border-radius: 999px; padding: 5px 8px; }
+    .error { color: #b42318; font-weight: 700; }
+    @media (max-width: 980px) {
+      .summary, .workspace { grid-template-columns: 1fr; }
+      .controls { grid-template-columns: 1fr 84px; }
+      .primary { grid-column: 1 / -1; }
+    }
+    @media (max-width: 620px) {
+      .topbar-inner, main { padding-left: 14px; padding-right: 14px; }
+      .topbar-inner { align-items: flex-start; flex-direction: column; }
+      .status { justify-content: flex-start; }
+      .controls { grid-template-columns: 1fr; }
+      .workspace-panel, .intro, .stat { padding: 14px; }
+      h1 { font-size: 18px; }
+    }
   </style>
 </head>
 <body>
-  <main>
-    <section class="hero">
-      <div>
-        <div class="eyebrow">Private demo · DeepSeek RAG</div>
-        <h1>出海投放 AI 军师</h1>
-        <p>把团队的投放 SOP、复盘、素材规则和踩坑经验变成可问答的 AI 助手。它先检索知识库，再给出带来源的行动建议，适合用来做新人培训、投放诊断和复盘辅助。</p>
-      </div>
-      <div class="panel">
-        <h2>当前 Demo 知识库</h2>
-        <div class="metrics">
-          <div class="metric"><strong>381</strong><span>知识片段</span></div>
-          <div class="metric"><strong>5</strong><span>业务分类</span></div>
-          <div class="metric"><strong>DeepSeek</strong><span>回答模型</span></div>
+  <div class="shell">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <div class="mark">AI</div>
+          <div>
+            <h1>出海投放 AI 军师</h1>
+            <div class="subline">30天出海指挥部知识库 · DeepSeek RAG</div>
+          </div>
+        </div>
+        <div class="status">
+          <span class="pill">私有试点</span>
+          <span class="pill">来源可追溯</span>
+          <span class="pill">访问码保护</span>
         </div>
       </div>
-    </section>
+    </header>
 
-    <section class="app">
-      <div class="panel">
-        <h2>问一个真实投放问题</h2>
+    <main>
+      <section class="summary">
+        <div class="intro">
+          <strong>投放问题诊断台</strong>
+          <span>把 SOP、复盘、素材规则和踩坑经验整理成可检索的策略建议，适合做客户试点和团队内部培训。</span>
+        </div>
+        <div class="stat"><strong>381</strong><span>知识片段</span></div>
+        <div class="stat"><strong>5</strong><span>业务分类</span></div>
+        <div class="stat"><strong>DeepSeek</strong><span>回答模型</span></div>
+      </section>
+
+      <section class="workspace">
+      <div class="workspace-panel">
+        <div class="panel-head">
+          <h2>策略问答</h2>
+          <span class="panel-note">建议输入真实业务问题</span>
+        </div>
         <textarea id="question" placeholder="例如：ROI 下滑但 CTR 没变，是落地页问题还是事件回传问题？"></textarea>
-        <div class="row">
+        <div class="controls">
           <select id="category">
             <option value="">全部知识库</option>
             <option value="ad_strategy">投放策略库</option>
@@ -83,15 +248,20 @@ def render_index_html() -> str:
             <option value="review_cases">复盘案例库</option>
           </select>
           <input id="limit" type="number" min="1" max="8" value="3" title="检索资料数" />
-          <input id="accessCode" type="password" placeholder="访问码，可选" autocomplete="current-password" />
-          <button id="ask">生成策略建议</button>
+          <input id="accessCode" type="password" placeholder="访问码" autocomplete="current-password" />
+          <button id="ask" class="primary">生成策略建议</button>
         </div>
-        <div class="hint">部署到公网时，请设置 APP_API_KEY，并把访问码发给试点客户。</div>
-        <div id="answer" class="answer">等待提问。</div>
-        <div id="sources" class="sources"></div>
+        <div class="hint">公网试点需要填写访问码；本地无访问码配置时可留空。</div>
+        <div class="result-grid">
+          <div id="answer" class="answer">等待提问。</div>
+          <div id="sources" class="sources"></div>
+        </div>
       </div>
-      <aside class="panel samples">
-        <h2>问题诊断入口</h2>
+      <aside class="workspace-panel samples">
+        <div class="panel-head">
+          <h2>场景入口</h2>
+          <span class="panel-note">点击填入问题</span>
+        </div>
         <div class="sample-group">
           <h3>投放策略</h3>
           <button data-q="钱一直烧但是不出单咋办？" data-cat="">烧钱没单怎么办？</button>
@@ -117,9 +287,16 @@ def render_index_html() -> str:
           <button data-q="自动化规则怎么避免误杀好计划？" data-cat="risk_playbook">自动规则如何防误杀？</button>
           <button data-q="今天亏损应该归因到素材、受众、落地页还是技术链路？" data-cat="review_cases">亏损复盘怎么归因？</button>
         </div>
+        <div class="tag-row">
+          <span class="tag">ROI</span>
+          <span class="tag">素材疲劳</span>
+          <span class="tag">Pixel/CAPI</span>
+          <span class="tag">风控熔断</span>
+        </div>
       </aside>
     </section>
-  </main>
+    </main>
+  </div>
   <script>
     const answerEl = document.getElementById("answer");
     const sourcesEl = document.getElementById("sources");
@@ -157,7 +334,11 @@ def render_index_html() -> str:
           throw new Error(message);
         }
         answerEl.textContent = data.answer;
-        sourcesEl.innerHTML = "<strong>引用来源</strong><br>" + data.sources.map(s => `[${s.source_number}] ${s.title}<br><small>${s.source_path}</small>`).join("<br><br>");
+        if (data.sources.length) {
+          sourcesEl.innerHTML = "<strong>引用来源</strong>" + data.sources.map(s => `<div class="source-card"><div class="source-title">[${s.source_number}] ${s.title}</div><div class="source-path">${s.source_path}</div></div>`).join("");
+        } else {
+          sourcesEl.innerHTML = "<strong>引用来源</strong><div class=\"source-path\">暂无命中来源</div>";
+        }
       } catch (err) {
         answerEl.innerHTML = `<span class="error">${err.message}</span>`;
       } finally {
