@@ -121,10 +121,78 @@ def render_index_html() -> str:
     textarea:focus, select:focus, input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
     .controls {
       display: grid;
-      grid-template-columns: minmax(170px, 1fr) 84px minmax(170px, 1fr) 170px;
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .field-label {
+      display: block;
+      color: #667085;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .category-cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .category-card {
+      min-height: 70px;
+      padding: 12px;
+      border: 1px solid #d9e0ea;
+      border-radius: 8px;
+      background: #fff;
+      color: #344054;
+      text-align: left;
+      box-shadow: 0 1px 2px rgba(16,24,40,.04);
+    }
+    .category-card strong {
+      display: block;
+      color: #182230;
+      font-size: 14px;
+      line-height: 1.25;
+    }
+    .category-card span {
+      display: block;
+      margin-top: 5px;
+      color: #667085;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .category-card.active {
+      border-color: #0f766e;
+      background: #effaf6;
+      box-shadow: inset 0 0 0 1px #0f766e, 0 6px 16px rgba(15,118,110,.10);
+    }
+    .ask-options {
+      display: grid;
+      grid-template-columns: 1fr minmax(180px, .72fr) 170px;
       gap: 10px;
-      margin-top: 12px;
-      align-items: center;
+      align-items: end;
+    }
+    .depth-toggle {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      min-height: 44px;
+      padding: 4px;
+      border: 1px solid #d9e0ea;
+      border-radius: 8px;
+      background: #f7faff;
+    }
+    .depth-toggle button {
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: #475467;
+      font-weight: 800;
+    }
+    .depth-toggle button.active {
+      background: #fff;
+      color: #0f766e;
+      box-shadow: 0 1px 3px rgba(16,24,40,.10);
     }
     select, input {
       width: 100%;
@@ -134,6 +202,17 @@ def render_index_html() -> str:
       border: 1px solid #c9d3e1;
       background: #fff;
       color: #182230;
+    }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
     .primary {
       min-height: 44px;
@@ -188,14 +267,15 @@ def render_index_html() -> str:
     .error { color: #b42318; font-weight: 700; }
     @media (max-width: 980px) {
       .summary, .workspace { grid-template-columns: 1fr; }
-      .controls { grid-template-columns: 1fr 84px; }
+      .category-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ask-options { grid-template-columns: 1fr 1fr; }
       .primary { grid-column: 1 / -1; }
     }
     @media (max-width: 620px) {
       .topbar-inner, main { padding-left: 14px; padding-right: 14px; }
       .topbar-inner { align-items: flex-start; flex-direction: column; }
       .status { justify-content: flex-start; }
-      .controls { grid-template-columns: 1fr; }
+      .category-cards, .ask-options { grid-template-columns: 1fr; }
       .workspace-panel, .intro, .stat { padding: 14px; }
       h1 { font-size: 18px; }
     }
@@ -239,17 +319,53 @@ def render_index_html() -> str:
         </div>
         <textarea id="question" placeholder="例如：ROI 下滑但 CTR 没变，是落地页问题还是事件回传问题？"></textarea>
         <div class="controls">
-          <select id="category">
-            <option value="">全部知识库</option>
-            <option value="ad_strategy">投放策略库</option>
-            <option value="creative_copy">素材与文案库</option>
-            <option value="tech_execution">技术落地库</option>
-            <option value="risk_playbook">风控与踩坑库</option>
-            <option value="review_cases">复盘案例库</option>
-          </select>
-          <input id="limit" type="number" min="1" max="8" value="3" title="检索资料数" />
-          <input id="accessCode" type="password" placeholder="访问码" autocomplete="current-password" />
-          <button id="ask" class="primary">生成策略建议</button>
+          <div>
+            <label class="field-label">你要解决哪类问题</label>
+            <div class="category-cards" role="listbox" aria-label="问题类型">
+              <button type="button" class="category-card active" data-category="">
+                <strong>综合诊断</strong><span>不确定原因时先选这个</span>
+              </button>
+              <button type="button" class="category-card" data-category="ad_strategy">
+                <strong>投放决策</strong><span>预算、ROI、人群、放量</span>
+              </button>
+              <button type="button" class="category-card" data-category="creative_copy">
+                <strong>素材文案</strong><span>Hook、脚本、素材疲劳</span>
+              </button>
+              <button type="button" class="category-card" data-category="tech_execution">
+                <strong>数据回传</strong><span>Pixel、CAPI、落地页性能</span>
+              </button>
+              <button type="button" class="category-card" data-category="risk_playbook">
+                <strong>止损风控</strong><span>空烧、封控、自动规则</span>
+              </button>
+              <button type="button" class="category-card" data-category="review_cases">
+                <strong>复盘归因</strong><span>亏损定位和日报复盘</span>
+              </button>
+            </div>
+            <select id="category" class="sr-only" aria-label="问题类型">
+              <option value="">全部知识库</option>
+              <option value="ad_strategy">投放策略库</option>
+              <option value="creative_copy">素材与文案库</option>
+              <option value="tech_execution">技术落地库</option>
+              <option value="risk_playbook">风控与踩坑库</option>
+              <option value="review_cases">复盘案例库</option>
+            </select>
+          </div>
+          <div class="ask-options">
+            <div>
+              <label class="field-label">建议深度</label>
+              <div class="depth-toggle" aria-label="建议深度">
+                <button type="button" data-limit="2">快速</button>
+                <button type="button" class="active" data-limit="3">标准</button>
+                <button type="button" data-limit="5">深入</button>
+              </div>
+              <input id="limit" class="sr-only" type="number" min="1" max="8" value="3" />
+            </div>
+            <div>
+              <label class="field-label" for="accessCode">演示访问码</label>
+              <input id="accessCode" type="password" placeholder="输入访问码" autocomplete="current-password" />
+            </div>
+            <button id="ask" class="primary">生成策略建议</button>
+          </div>
         </div>
         <div class="hint">请输入演示访问码后生成建议。访问码由项目负责人提供。</div>
         <div class="result-grid">
@@ -301,10 +417,25 @@ def render_index_html() -> str:
     const answerEl = document.getElementById("answer");
     const sourcesEl = document.getElementById("sources");
     const askBtn = document.getElementById("ask");
+    function setCategory(value) {
+      document.getElementById("category").value = value || "";
+      document.querySelectorAll("[data-category]").forEach(btn => {
+        btn.classList.toggle("active", (btn.dataset.category || "") === (value || ""));
+      });
+    }
+    document.querySelectorAll("[data-category]").forEach(btn => {
+      btn.addEventListener("click", () => setCategory(btn.dataset.category || ""));
+    });
+    document.querySelectorAll("[data-limit]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.getElementById("limit").value = btn.dataset.limit;
+        document.querySelectorAll("[data-limit]").forEach(item => item.classList.toggle("active", item === btn));
+      });
+    });
     document.querySelectorAll("[data-q]").forEach(btn => {
       btn.addEventListener("click", () => {
         document.getElementById("question").value = btn.dataset.q;
-        document.getElementById("category").value = btn.dataset.cat || "";
+        setCategory(btn.dataset.cat || "");
       });
     });
     askBtn.addEventListener("click", async () => {
@@ -335,9 +466,13 @@ def render_index_html() -> str:
         }
         answerEl.textContent = data.answer;
         if (data.sources.length) {
-          sourcesEl.innerHTML = "<strong>引用来源</strong>" + data.sources.map(s => `<div class="source-card"><div class="source-title">[${s.source_number}] ${s.title}</div><div class="source-path">${s.source_path}</div></div>`).join("");
+          sourcesEl.innerHTML = "<strong>引用来源</strong>" + data.sources.map(s => (
+            '<div class="source-card"><div class="source-title">[' +
+            s.source_number + "] " + s.title +
+            '</div><div class="source-path">' + s.source_path + '</div></div>'
+          )).join("");
         } else {
-          sourcesEl.innerHTML = "<strong>引用来源</strong><div class=\"source-path\">暂无命中来源</div>";
+          sourcesEl.innerHTML = '<strong>引用来源</strong><div class="source-path">暂无命中来源</div>';
         }
       } catch (err) {
         answerEl.innerHTML = `<span class="error">${err.message}</span>`;
