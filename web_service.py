@@ -224,9 +224,16 @@ def render_index_html() -> str:
       box-shadow: 0 10px 20px rgba(15,118,110,.18);
     }
     .primary:hover { background: #115e59; }
-    .primary:disabled { opacity: .72; cursor: wait; box-shadow: none; }
+    .primary:disabled { opacity: .62; cursor: not-allowed; box-shadow: none; }
     .hint { margin-top: 10px; color: #667085; font-size: 13px; }
-    .result-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; margin-top: 14px; }
+    .result-shell {
+      max-height: 55vh;
+      overflow-y: auto;
+      margin-top: 14px;
+      padding-right: 4px;
+      scrollbar-color: #c9d3e1 transparent;
+    }
+    .result-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
     .answer, .sources {
       border: 1px solid #d9e0ea;
       border-radius: 8px;
@@ -245,6 +252,41 @@ def render_index_html() -> str:
     .source-card:first-of-type { border-top: 0; margin-top: 8px; padding-top: 0; }
     .source-title { font-weight: 800; color: #182230; }
     .source-path { color: #667085; font-size: 12px; margin-top: 4px; }
+    .history {
+      margin-top: 16px;
+      border-top: 1px solid #e4eaf2;
+      padding-top: 14px;
+    }
+    .history:empty { display: none; }
+    .history-title {
+      color: #475467;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .history-card {
+      border: 1px solid #d9e0ea;
+      border-radius: 8px;
+      background: #fff;
+      padding: 13px;
+      margin-top: 10px;
+    }
+    .history-question {
+      color: #182230;
+      font-weight: 800;
+      line-height: 1.5;
+    }
+    .history-answer {
+      color: #344054;
+      line-height: 1.7;
+      margin-top: 8px;
+      white-space: pre-wrap;
+    }
+    .history-meta {
+      color: #667085;
+      font-size: 12px;
+      margin-top: 8px;
+    }
     .sidebar { display: grid; gap: 12px; }
     .sample-group { border-top: 1px solid #e4eaf2; padding-top: 13px; }
     .sample-group:first-of-type { border-top: 0; padding-top: 0; }
@@ -367,10 +409,13 @@ def render_index_html() -> str:
             <button id="ask" class="primary">生成策略建议</button>
           </div>
         </div>
-        <div class="hint">请输入演示访问码后生成建议。访问码由项目负责人提供。</div>
-        <div class="result-grid">
-          <div id="answer" class="answer">等待提问。</div>
-          <div id="sources" class="sources"></div>
+        <div id="formHint" class="hint">请输入演示访问码后生成建议。访问码由项目负责人提供。</div>
+        <div class="result-shell" aria-live="polite">
+          <div class="result-grid">
+            <div id="answer" class="answer">等待提问。</div>
+            <div id="sources" class="sources"></div>
+          </div>
+          <div id="history" class="history"></div>
         </div>
       </div>
       <aside class="workspace-panel samples">
@@ -417,6 +462,45 @@ def render_index_html() -> str:
     const answerEl = document.getElementById("answer");
     const sourcesEl = document.getElementById("sources");
     const askBtn = document.getElementById("ask");
+    const questionEl = document.getElementById("question");
+    const accessInput = document.getElementById("accessCode");
+    const formHint = document.getElementById("formHint");
+    const historyEl = document.getElementById("history");
+    accessInput.value = sessionStorage.getItem("access_code") || "";
+    function escapeHtml(value) {
+      return String(value || "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+    function updateAskState() {
+      const hasQuestion = questionEl.value.trim().length > 0;
+      askBtn.disabled = !hasQuestion;
+      formHint.textContent = hasQuestion
+        ? "请输入演示访问码后生成建议。访问码由项目负责人提供。"
+        : "先输入一个真实投放问题，再生成策略建议。";
+    }
+    function renderHistoryItem(question, answer, sources) {
+      const sourceCount = Array.isArray(sources) ? sources.length : 0;
+      if (!historyEl.dataset.ready) {
+        historyEl.innerHTML = '<div class="history-title">诊断记录</div>';
+        historyEl.dataset.ready = "true";
+      }
+      historyEl.insertAdjacentHTML("beforeend", (
+        '<div class="history-card">' +
+        '<div class="history-question">' + escapeHtml(question) + '</div>' +
+        '<div class="history-answer">' + escapeHtml(answer) + '</div>' +
+        '<div class="history-meta">引用来源 ' + sourceCount + ' 条</div>' +
+        '</div>'
+      ));
+    }
+    accessInput.addEventListener("input", () => {
+      sessionStorage.setItem("access_code", accessInput.value.trim());
+    });
+    questionEl.addEventListener("input", updateAskState);
     function setCategory(value) {
       document.getElementById("category").value = value || "";
       document.querySelectorAll("[data-category]").forEach(btn => {
@@ -434,19 +518,28 @@ def render_index_html() -> str:
     });
     document.querySelectorAll("[data-q]").forEach(btn => {
       btn.addEventListener("click", () => {
-        document.getElementById("question").value = btn.dataset.q;
+        questionEl.value = btn.dataset.q;
         setCategory(btn.dataset.cat || "");
+        updateAskState();
       });
     });
+    updateAskState();
     askBtn.addEventListener("click", async () => {
-      const question = document.getElementById("question").value.trim();
-      if (!question) return;
+      const question = questionEl.value.trim();
+      if (!question) {
+        updateAskState();
+        return;
+      }
       askBtn.disabled = true;
       askBtn.textContent = "正在分析...";
       answerEl.textContent = "正在分析知识库...";
       sourcesEl.textContent = "";
       try {
-        const accessCode = document.getElementById("accessCode").value.trim();
+        const accessCode = accessInput.value.trim();
+        if (!accessCode) {
+          throw new Error("请输入演示访问码。");
+        }
+        sessionStorage.setItem("access_code", accessCode);
         const headers = {"Content-Type": "application/json"};
         if (accessCode) headers["Authorization"] = `Bearer ${accessCode}`;
         const res = await fetch("/api/ask", {
@@ -468,17 +561,19 @@ def render_index_html() -> str:
         if (data.sources.length) {
           sourcesEl.innerHTML = "<strong>引用来源</strong>" + data.sources.map(s => (
             '<div class="source-card"><div class="source-title">[' +
-            s.source_number + "] " + s.title +
-            '</div><div class="source-path">' + s.source_path + '</div></div>'
+            escapeHtml(s.source_number) + "] " + escapeHtml(s.title) +
+            '</div><div class="source-path">' + escapeHtml(s.source_path) + '</div></div>'
           )).join("");
         } else {
           sourcesEl.innerHTML = '<strong>引用来源</strong><div class="source-path">暂无命中来源</div>';
         }
+        renderHistoryItem(question, data.answer, data.sources);
       } catch (err) {
-        answerEl.innerHTML = `<span class="error">${err.message}</span>`;
+        answerEl.innerHTML = '<span class="error">' + escapeHtml(err.message) + '</span>';
       } finally {
         askBtn.disabled = false;
         askBtn.textContent = "生成策略建议";
+        updateAskState();
       }
     });
   </script>
