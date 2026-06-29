@@ -1,4 +1,5 @@
 import argparse
+import inspect
 import json
 import os
 import sqlite3
@@ -194,6 +195,33 @@ def render_index_html() -> str:
       color: #0f766e;
       box-shadow: 0 1px 3px rgba(16,24,40,.10);
     }
+    .loading-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #344054;
+    }
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #c9d3e1;
+      border-top-color: #0f766e;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      flex: 0 0 auto;
+    }
+    .loading-text { font-weight: 800; }
+    .loading-dots::after {
+      content: "";
+      animation: dots 1.2s steps(4, end) infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes dots {
+      0% { content: ""; }
+      25% { content: "."; }
+      50% { content: ".."; }
+      75%, 100% { content: "..."; }
+    }
     select, input {
       width: 100%;
       min-height: 44px;
@@ -226,6 +254,24 @@ def render_index_html() -> str:
     .primary:hover { background: #115e59; }
     .primary:disabled { opacity: .62; cursor: not-allowed; box-shadow: none; }
     .hint { margin-top: 10px; color: #667085; font-size: 13px; }
+    .result-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .secondary {
+      min-height: 36px;
+      padding: 8px 11px;
+      border: 1px solid #c9d3e1;
+      border-radius: 8px;
+      background: #fff;
+      color: #344054;
+      font-weight: 800;
+    }
+    .secondary:hover { background: #f7faff; border-color: #b7c6db; }
+    .secondary:disabled { opacity: .52; cursor: not-allowed; }
     .result-shell {
       max-height: 55vh;
       overflow-y: auto;
@@ -256,6 +302,9 @@ def render_index_html() -> str:
       margin-top: 16px;
       border-top: 1px solid #e4eaf2;
       padding-top: 14px;
+      max-height: 50vh;
+      overflow-y: auto;
+      padding-right: 4px;
     }
     .history:empty { display: none; }
     .history-title {
@@ -396,11 +445,12 @@ def render_index_html() -> str:
             <div>
               <label class="field-label">建议深度</label>
               <div class="depth-toggle" aria-label="建议深度">
-                <button type="button" data-limit="2">快速</button>
-                <button type="button" class="active" data-limit="3">标准</button>
-                <button type="button" data-limit="5">深入</button>
+                <button type="button" data-limit="2" data-depth="quick">快速</button>
+                <button type="button" class="active" data-limit="3" data-depth="standard">标准</button>
+                <button type="button" data-limit="5" data-depth="deep">深入</button>
               </div>
               <input id="limit" class="sr-only" type="number" min="1" max="8" value="3" />
+              <input id="depth" class="sr-only" type="text" value="standard" />
             </div>
             <div>
               <label class="field-label" for="accessCode">演示访问码</label>
@@ -410,6 +460,10 @@ def render_index_html() -> str:
           </div>
         </div>
         <div id="formHint" class="hint">请输入演示访问码后生成建议。访问码由项目负责人提供。</div>
+        <div class="result-actions">
+          <button id="copyAnswer" type="button" class="secondary" disabled>复制回答</button>
+          <button id="clearChat" type="button" class="secondary" disabled>清除对话</button>
+        </div>
         <div class="result-shell" aria-live="polite">
           <div class="result-grid">
             <div id="answer" class="answer">等待提问。</div>
@@ -466,6 +520,11 @@ def render_index_html() -> str:
     const accessInput = document.getElementById("accessCode");
     const formHint = document.getElementById("formHint");
     const historyEl = document.getElementById("history");
+    const copyBtn = document.getElementById("copyAnswer");
+    const clearBtn = document.getElementById("clearChat");
+    let latestAnswerText = "";
+    let isLoading = false;
+    let loadingTimers = [];
     accessInput.value = sessionStorage.getItem("access_code") || "";
     function escapeHtml(value) {
       return String(value || "").replace(/[&<>"']/g, char => ({
@@ -478,10 +537,39 @@ def render_index_html() -> str:
     }
     function updateAskState() {
       const hasQuestion = questionEl.value.trim().length > 0;
-      askBtn.disabled = !hasQuestion;
-      formHint.textContent = hasQuestion
-        ? "请输入演示访问码后生成建议。访问码由项目负责人提供。"
-        : "先输入一个真实投放问题，再生成策略建议。";
+      const hasCode = accessInput.value.trim().length > 0;
+      askBtn.disabled = isLoading || !hasQuestion;
+      copyBtn.disabled = !latestAnswerText;
+      clearBtn.disabled = !latestAnswerText && !historyEl.dataset.ready;
+      if (isLoading) return;
+      if (!hasCode) {
+        formHint.textContent = "请输入演示访问码后生成建议。访问码由项目负责人提供。";
+      } else if (!hasQuestion) {
+        formHint.textContent = "先输入一个真实投放问题，再生成策略建议。";
+      } else {
+        formHint.textContent = "准备就绪，点击生成策略建议。";
+      }
+    }
+    function setLoadingStep(text) {
+      answerEl.innerHTML = '<div class="loading-box"><span class="spinner"></span><span class="loading-text">' + escapeHtml(text) + '<span class="loading-dots"></span></span></div>';
+      formHint.textContent = text;
+    }
+    function startLoading() {
+      isLoading = true;
+      askBtn.disabled = true;
+      askBtn.textContent = "正在分析...";
+      setLoadingStep("正在检索知识库");
+      loadingTimers = [
+        setTimeout(() => setLoadingStep("正在生成策略建议"), 1000),
+        setTimeout(() => setLoadingStep("正在整理引用来源"), 3500),
+      ];
+    }
+    function stopLoading() {
+      loadingTimers.forEach(timer => clearTimeout(timer));
+      loadingTimers = [];
+      isLoading = false;
+      askBtn.textContent = "生成策略建议";
+      updateAskState();
     }
     function renderHistoryItem(question, answer, sources) {
       const sourceCount = Array.isArray(sources) ? sources.length : 0;
@@ -499,6 +587,7 @@ def render_index_html() -> str:
     }
     accessInput.addEventListener("input", () => {
       sessionStorage.setItem("access_code", accessInput.value.trim());
+      updateAskState();
     });
     questionEl.addEventListener("input", updateAskState);
     function setCategory(value) {
@@ -513,8 +602,26 @@ def render_index_html() -> str:
     document.querySelectorAll("[data-limit]").forEach(btn => {
       btn.addEventListener("click", () => {
         document.getElementById("limit").value = btn.dataset.limit;
+        document.getElementById("depth").value = btn.dataset.depth || "standard";
         document.querySelectorAll("[data-limit]").forEach(item => item.classList.toggle("active", item === btn));
       });
+    });
+    copyBtn.addEventListener("click", async () => {
+      if (!latestAnswerText) return;
+      try {
+        await navigator.clipboard.writeText(latestAnswerText);
+        formHint.textContent = "回答已复制，可以粘贴到复盘、群聊或客户沟通里。";
+      } catch (err) {
+        formHint.textContent = "复制失败，请手动选中回答内容复制。";
+      }
+    });
+    clearBtn.addEventListener("click", () => {
+      latestAnswerText = "";
+      answerEl.textContent = "等待提问。";
+      sourcesEl.textContent = "";
+      historyEl.innerHTML = "";
+      delete historyEl.dataset.ready;
+      updateAskState();
     });
     document.querySelectorAll("[data-q]").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -530,9 +637,7 @@ def render_index_html() -> str:
         updateAskState();
         return;
       }
-      askBtn.disabled = true;
-      askBtn.textContent = "正在分析...";
-      answerEl.textContent = "正在分析知识库...";
+      startLoading();
       sourcesEl.textContent = "";
       try {
         const accessCode = accessInput.value.trim();
@@ -549,16 +654,23 @@ def render_index_html() -> str:
             question,
             category_key: document.getElementById("category").value || null,
             limit: Number(document.getElementById("limit").value || 3),
+            depth: document.getElementById("depth").value || "standard",
             use_llm: true
           })
         });
-        const data = await res.json();
+        const contentType = res.headers.get("content-type") || "";
+        const data = contentType.includes("application/json")
+          ? await res.json()
+          : {error: await res.text()};
         if (!res.ok) {
-          const message = res.status === 401 ? "访问码不正确，请重新输入。" : (data.error || "请求失败");
+          const message = res.status === 401
+            ? "访问码不正确，请重新输入。"
+            : "生成失败，请稍后重试。如持续失败请联系项目负责人。";
           throw new Error(message);
         }
-        answerEl.textContent = data.answer;
-        if (data.sources.length) {
+        latestAnswerText = data.answer || "";
+        answerEl.textContent = latestAnswerText;
+        if (Array.isArray(data.sources) && data.sources.length) {
           sourcesEl.innerHTML = "<strong>引用来源</strong>" + data.sources.map(s => (
             '<div class="source-card"><div class="source-title">[' +
             escapeHtml(s.source_number) + "] " + escapeHtml(s.title) +
@@ -567,13 +679,12 @@ def render_index_html() -> str:
         } else {
           sourcesEl.innerHTML = '<strong>引用来源</strong><div class="source-path">暂无命中来源</div>';
         }
-        renderHistoryItem(question, data.answer, data.sources);
+        renderHistoryItem(question, latestAnswerText, data.sources || []);
       } catch (err) {
+        latestAnswerText = "";
         answerEl.innerHTML = '<span class="error">' + escapeHtml(err.message) + '</span>';
       } finally {
-        askBtn.disabled = false;
-        askBtn.textContent = "生成策略建议";
-        updateAskState();
+        stopLoading();
       }
     });
   </script>
@@ -633,9 +744,17 @@ def handle_ask_payload(
     limit = max(1, min(limit, 8))
     category_key = payload.get("category_key") or None
     use_llm = bool(payload.get("use_llm", True))
+    depth = str(payload.get("depth") or "standard")
 
     contexts = retriever(db_path=Path(db_path), question=question, limit=limit, category_key=category_key)
-    answer = answerer(question, contexts, use_llm=use_llm)
+    signature = inspect.signature(answerer)
+    accepts_depth = "depth" in signature.parameters or any(
+        parameter.kind == inspect.Parameter.VAR_KEYWORD for parameter in signature.parameters.values()
+    )
+    if accepts_depth:
+        answer = answerer(question, contexts, use_llm=use_llm, depth=depth)
+    else:
+        answer = answerer(question, contexts, use_llm=use_llm)
     response = {
         "answer": answer,
         "sources": [source_payload(context) for context in contexts],

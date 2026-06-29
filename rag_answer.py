@@ -41,7 +41,21 @@ def format_sources(contexts: list[dict]) -> list[str]:
     return sources
 
 
-def build_rag_prompt(question: str, contexts: list[dict]) -> str:
+DEPTH_INSTRUCTIONS = {
+    "quick": "快速：用 3-5 条要点回答，每条不超过 50 字；不要分章节；必须保留来源编号。",
+    "standard": "标准：结构化回答，包含原因分析和行动建议，控制在 300 字以内；必须保留来源编号。",
+    "deep": "深入：完整诊断，包含原因拆解、排查步骤、观察指标、风险提醒；附引用来源。",
+}
+
+
+def normalize_depth(depth: str | None) -> str:
+    if depth in DEPTH_INSTRUCTIONS:
+        return str(depth)
+    return "standard"
+
+
+def build_rag_prompt(question: str, contexts: list[dict], depth: str = "standard") -> str:
+    depth = normalize_depth(depth)
     source_blocks = []
     for context in contexts:
         metadata = context.get("metadata", {})
@@ -66,6 +80,9 @@ def build_rag_prompt(question: str, contexts: list[dict]) -> str:
 3. 回答要像投放诊断顾问，不要只回答单点结论。
 4. 每个关键结论后面标注来源编号，例如：[来源 1]。
 5. 最后列出“引用来源”。
+
+回答深度：
+{DEPTH_INSTRUCTIONS[depth]}
 
 请按这个结构回答：
 - 问题类型判断：判断用户问题属于投放策略、素材文案、技术落地、风控踩坑、复盘分析中的哪一类；如果横跨多类，也要说出来。
@@ -108,11 +125,12 @@ def answer_question(
     question: str,
     contexts: list[dict],
     use_llm: bool = False,
+    depth: str = "standard",
     llm_call=chat_completion,
 ) -> str:
     if not use_llm:
         return local_draft_answer(question, contexts)
-    prompt = build_rag_prompt(question, contexts)
+    prompt = build_rag_prompt(question, contexts, depth=depth)
     try:
         return llm_call(prompt)
     except Exception as exc:

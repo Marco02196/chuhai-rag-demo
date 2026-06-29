@@ -46,6 +46,21 @@ class RagAnswerTest(unittest.TestCase):
         self.assertIn("问题类型判断", prompt)
         self.assertIn("可能原因拆解", prompt)
 
+    def test_build_rag_prompt_applies_depth_instruction(self):
+        contexts = [
+            {
+                "source_number": 1,
+                "text": "对应动作：Kill (关停)",
+                "metadata": {"title": "放量与止损看板", "source_path": "x.csv"},
+            }
+        ]
+
+        quick_prompt = build_rag_prompt("ROI 低怎么办", contexts, depth="quick")
+        deep_prompt = build_rag_prompt("ROI 低怎么办", contexts, depth="deep")
+
+        self.assertIn("3-5 条要点", quick_prompt)
+        self.assertIn("完整诊断", deep_prompt)
+
     def test_format_sources_lists_unique_sources(self):
         contexts = [
             {"source_number": 1, "metadata": {"title": "A", "source_path": "a.md"}},
@@ -90,7 +105,7 @@ class RagAnswerTest(unittest.TestCase):
             self.assertIn("对应动作：Kill", prompt)
             return "应该关停该计划。[来源 1]"
 
-        answer = answer_question("ROI 小于 1 怎么办", contexts, use_llm=True, llm_call=fake_llm)
+        answer = answer_question("ROI 小于 1 怎么办", contexts, use_llm=True, depth="quick", llm_call=fake_llm)
 
         self.assertEqual(answer, "应该关停该计划。[来源 1]")
 

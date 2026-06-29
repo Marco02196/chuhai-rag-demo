@@ -39,6 +39,10 @@ class WebServiceTest(unittest.TestCase):
         self.assertIn("sessionStorage", html)
         self.assertIn("result-shell", html)
         self.assertIn("诊断记录", html)
+        self.assertIn("loading-box", html)
+        self.assertIn("copyAnswer", html)
+        self.assertIn("clearChat", html)
+        self.assertIn("data-depth=\"deep\"", html)
         self.assertIn("ROI 小于 1 持续两天怎么办", html)
         self.assertIn("钱一直烧但是不出单咋办", html)
         self.assertIn("半夜空烧怎么设置自动拦截规则", html)
@@ -76,6 +80,32 @@ class WebServiceTest(unittest.TestCase):
         self.assertEqual(response["answer"], "应该关停。[来源 1]")
         self.assertEqual(response["sources"][0]["title"], "放量与止损看板")
         self.assertNotIn("contexts", response)
+
+    def test_handle_ask_payload_passes_depth_to_answerer(self):
+        contexts = [
+            {
+                "source_number": 1,
+                "id": "a",
+                "text": "对应动作：Kill",
+                "metadata": {"title": "放量与止损看板", "source_path": "x.csv"},
+            }
+        ]
+        seen = {}
+
+        def answerer(question, contexts, use_llm, depth):
+            seen["depth"] = depth
+            return "快速回答。[来源 1]"
+
+        response, status = handle_ask_payload(
+            {"question": "ROI 低怎么办", "depth": "quick", "limit": 2, "use_llm": True},
+            db_path="kb.sqlite",
+            retriever=lambda **kwargs: contexts,
+            answerer=answerer,
+        )
+
+        self.assertEqual(status, 200)
+        self.assertEqual(seen["depth"], "quick")
+        self.assertEqual(response["answer"], "快速回答。[来源 1]")
 
     def test_handle_ask_payload_can_include_contexts_for_debugging(self):
         contexts = [
