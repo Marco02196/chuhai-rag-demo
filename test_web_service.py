@@ -29,6 +29,7 @@ class WebServiceTest(unittest.TestCase):
         html = render_index_html()
 
         self.assertIn("出海投放 AI 军师", html)
+        self.assertIn("私有问答助手", html)
         self.assertIn("accessCode", html)
         self.assertIn("Authorization", html)
         self.assertIn("生成策略建议", html)
@@ -42,6 +43,8 @@ class WebServiceTest(unittest.TestCase):
         self.assertIn("loading-box", html)
         self.assertIn("copyAnswer", html)
         self.assertIn("clearChat", html)
+        self.assertIn("rag_feedback", html)
+        self.assertIn("这条回答有帮助吗", html)
         self.assertIn("data-depth=\"deep\"", html)
         self.assertIn("ROI 小于 1 持续两天怎么办", html)
         self.assertIn("钱一直烧但是不出单咋办", html)

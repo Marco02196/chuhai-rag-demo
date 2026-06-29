@@ -272,6 +272,30 @@ def render_index_html() -> str:
     }
     .secondary:hover { background: #f7faff; border-color: #b7c6db; }
     .secondary:disabled { opacity: .52; cursor: not-allowed; }
+    .feedback {
+      display: none;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 10px;
+      color: #667085;
+      font-size: 13px;
+    }
+    .feedback.active { display: flex; }
+    .feedback button {
+      min-height: 32px;
+      min-width: 42px;
+      border: 1px solid #c9d3e1;
+      border-radius: 8px;
+      background: #fff;
+      color: #344054;
+      font-weight: 800;
+    }
+    .feedback button.active {
+      border-color: #0f766e;
+      background: #effaf6;
+      color: #0f766e;
+    }
     .result-shell {
       max-height: 55vh;
       overflow-y: auto;
@@ -380,7 +404,7 @@ def render_index_html() -> str:
           <div class="mark">AI</div>
           <div>
             <h1>出海投放 AI 军师</h1>
-            <div class="subline">30天出海指挥部知识库 · DeepSeek RAG</div>
+            <div class="subline">30天出海指挥部知识库 · 私有问答助手</div>
           </div>
         </div>
         <div class="status">
@@ -399,7 +423,7 @@ def render_index_html() -> str:
         </div>
         <div class="stat"><strong>381</strong><span>知识片段</span></div>
         <div class="stat"><strong>5</strong><span>业务分类</span></div>
-        <div class="stat"><strong>DeepSeek</strong><span>回答模型</span></div>
+        <div class="stat"><strong>AI 军师</strong><span>策略建议</span></div>
       </section>
 
       <section class="workspace">
@@ -464,6 +488,11 @@ def render_index_html() -> str:
           <button id="copyAnswer" type="button" class="secondary" disabled>复制回答</button>
           <button id="clearChat" type="button" class="secondary" disabled>清除对话</button>
         </div>
+        <div id="feedback" class="feedback">
+          <span>这条回答有帮助吗？</span>
+          <button type="button" data-feedback="up">有用</button>
+          <button type="button" data-feedback="down">没用</button>
+        </div>
         <div class="result-shell" aria-live="polite">
           <div class="result-grid">
             <div id="answer" class="answer">等待提问。</div>
@@ -522,7 +551,9 @@ def render_index_html() -> str:
     const historyEl = document.getElementById("history");
     const copyBtn = document.getElementById("copyAnswer");
     const clearBtn = document.getElementById("clearChat");
+    const feedbackEl = document.getElementById("feedback");
     let latestAnswerText = "";
+    let latestQuestionText = "";
     let isLoading = false;
     let loadingTimers = [];
     accessInput.value = sessionStorage.getItem("access_code") || "";
@@ -541,6 +572,7 @@ def render_index_html() -> str:
       askBtn.disabled = isLoading || !hasQuestion;
       copyBtn.disabled = !latestAnswerText;
       clearBtn.disabled = !latestAnswerText && !historyEl.dataset.ready;
+      feedbackEl.classList.toggle("active", Boolean(latestAnswerText));
       if (isLoading) return;
       if (!hasCode) {
         formHint.textContent = "请输入演示访问码后生成建议。访问码由项目负责人提供。";
@@ -585,6 +617,21 @@ def render_index_html() -> str:
         '</div>'
       ));
     }
+    function recordFeedback(value) {
+      if (!latestAnswerText) return;
+      const items = JSON.parse(localStorage.getItem("rag_feedback") || "[]");
+      items.push({
+        value,
+        question: latestQuestionText,
+        answerPreview: latestAnswerText.slice(0, 240),
+        createdAt: new Date().toISOString()
+      });
+      localStorage.setItem("rag_feedback", JSON.stringify(items.slice(-50)));
+      feedbackEl.querySelectorAll("[data-feedback]").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.feedback === value);
+      });
+      formHint.textContent = value === "up" ? "已记录：这条回答有帮助。" : "已记录：这条回答需要改进。";
+    }
     accessInput.addEventListener("input", () => {
       sessionStorage.setItem("access_code", accessInput.value.trim());
       updateAskState();
@@ -617,11 +664,16 @@ def render_index_html() -> str:
     });
     clearBtn.addEventListener("click", () => {
       latestAnswerText = "";
+      latestQuestionText = "";
       answerEl.textContent = "等待提问。";
       sourcesEl.textContent = "";
       historyEl.innerHTML = "";
       delete historyEl.dataset.ready;
+      feedbackEl.querySelectorAll("[data-feedback]").forEach(btn => btn.classList.remove("active"));
       updateAskState();
+    });
+    feedbackEl.querySelectorAll("[data-feedback]").forEach(btn => {
+      btn.addEventListener("click", () => recordFeedback(btn.dataset.feedback));
     });
     document.querySelectorAll("[data-q]").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -668,8 +720,10 @@ def render_index_html() -> str:
             : "生成失败，请稍后重试。如持续失败请联系项目负责人。";
           throw new Error(message);
         }
+        latestQuestionText = question;
         latestAnswerText = data.answer || "";
         answerEl.textContent = latestAnswerText;
+        feedbackEl.querySelectorAll("[data-feedback]").forEach(btn => btn.classList.remove("active"));
         if (Array.isArray(data.sources) && data.sources.length) {
           sourcesEl.innerHTML = "<strong>引用来源</strong>" + data.sources.map(s => (
             '<div class="source-card"><div class="source-title">[' +
@@ -682,6 +736,7 @@ def render_index_html() -> str:
         renderHistoryItem(question, latestAnswerText, data.sources || []);
       } catch (err) {
         latestAnswerText = "";
+        latestQuestionText = "";
         answerEl.innerHTML = '<span class="error">' + escapeHtml(err.message) + '</span>';
       } finally {
         stopLoading();
