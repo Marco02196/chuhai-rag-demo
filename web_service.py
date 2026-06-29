@@ -110,6 +110,7 @@ def render_index_html() -> str:
     textarea {
       width: 100%;
       min-height: 156px;
+      max-height: 280px;
       resize: vertical;
       padding: 15px;
       border: 1px solid #c9d3e1;
@@ -120,6 +121,16 @@ def render_index_html() -> str:
       outline: none;
     }
     textarea:focus, select:focus, input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+    .question-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 8px;
+      color: #667085;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .question-footer strong { color: #344054; }
     .controls {
       display: grid;
       gap: 14px;
@@ -361,6 +372,41 @@ def render_index_html() -> str:
       margin-top: 8px;
     }
     .sidebar { display: grid; gap: 12px; }
+    .recommend {
+      border: 1px solid #d9e0ea;
+      border-radius: 8px;
+      background: #fbfdff;
+      padding: 13px;
+      margin-bottom: 12px;
+    }
+    .recommend-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      color: #182230;
+      font-weight: 900;
+      margin-bottom: 9px;
+    }
+    .recommend-title span {
+      color: #667085;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .recommend button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      margin: 7px 0 0;
+      padding: 10px 11px;
+      border: 1px solid #d9e0ea;
+      border-radius: 8px;
+      background: #fff;
+      color: #182230;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+    .recommend button:hover { border-color: #0f766e; background: #effaf6; }
     .sample-group { border-top: 1px solid #e4eaf2; padding-top: 13px; }
     .sample-group:first-of-type { border-top: 0; padding-top: 0; }
     .sample-group h3 { margin: 0 0 8px; color: #475467; font-size: 13px; font-weight: 800; }
@@ -433,6 +479,10 @@ def render_index_html() -> str:
           <span class="panel-note">建议输入真实业务问题</span>
         </div>
         <textarea id="question" placeholder="例如：ROI 下滑但 CTR 没变，是落地页问题还是事件回传问题？"></textarea>
+        <div class="question-footer">
+          <span id="questionMode">当前：综合诊断</span>
+          <span><strong id="charCount">0</strong> 字</span>
+        </div>
         <div class="controls">
           <div>
             <label class="field-label">你要解决哪类问题</label>
@@ -506,6 +556,10 @@ def render_index_html() -> str:
           <h2>场景入口</h2>
           <span class="panel-note">点击填入问题</span>
         </div>
+        <div class="recommend">
+          <div class="recommend-title">当前推荐 <span id="recommendMode">综合诊断</span></div>
+          <div id="recommendList"></div>
+        </div>
         <div class="sample-group">
           <h3>投放策略</h3>
           <button data-q="钱一直烧但是不出单咋办？" data-cat="">烧钱没单怎么办？</button>
@@ -552,10 +606,54 @@ def render_index_html() -> str:
     const copyBtn = document.getElementById("copyAnswer");
     const clearBtn = document.getElementById("clearChat");
     const feedbackEl = document.getElementById("feedback");
+    const charCountEl = document.getElementById("charCount");
+    const questionModeEl = document.getElementById("questionMode");
+    const recommendModeEl = document.getElementById("recommendMode");
+    const recommendListEl = document.getElementById("recommendList");
     let latestAnswerText = "";
     let latestQuestionText = "";
     let isLoading = false;
     let loadingTimers = [];
+    const categoryLabels = {
+      "": "综合诊断",
+      "ad_strategy": "投放决策",
+      "creative_copy": "素材文案",
+      "tech_execution": "数据回传",
+      "risk_playbook": "止损风控",
+      "review_cases": "复盘归因"
+    };
+    const recommendedQuestions = {
+      "": [
+        ["钱一直烧但是不出单咋办？", ""],
+        ["ROI 下滑但 CTR 没变，是落地页问题还是事件回传问题？", ""],
+        ["今天亏损应该先查素材、人群、落地页还是技术链路？", ""]
+      ],
+      "ad_strategy": [
+        ["ROI 小于 1 持续两天，应该关停还是降预算？", "ad_strategy"],
+        ["CTR 高但 CVR 低，投放上先排查什么？", "ad_strategy"],
+        ["TOFU、MOFU、BOFU 怎么做人群排除？", "ad_strategy"]
+      ],
+      "creative_copy": [
+        ["Hook 不够强，怎么改成更高 CTR 的开头？", "creative_copy"],
+        ["素材疲劳应该看哪些信号？", "creative_copy"],
+        ["FB 爆款五步法文案怎么写？", "creative_copy"]
+      ],
+      "tech_execution": [
+        ["Pixel、CAPI、事件回传怎么配置才干净？", "tech_execution"],
+        ["动态参数路由里的 pid、goal、segment 分别是什么？", "tech_execution"],
+        ["LCP、CLS、TBT 超预算时先修哪里？", "tech_execution"]
+      ],
+      "risk_playbook": [
+        ["半夜空烧怎么设置自动拦截规则？", "risk_playbook"],
+        ["自动化规则怎么避免误杀好计划？", "risk_playbook"],
+        ["Merchant Score 变差时应该先暂停什么？", "risk_playbook"]
+      ],
+      "review_cases": [
+        ["亏损复盘怎么判断是素材、受众还是落地页问题？", "review_cases"],
+        ["投放日报里 CPA 为 0 但 ROAS 正常该怎么解释？", "review_cases"],
+        ["怎么把一次失败投放整理成可复用 SOP？", "review_cases"]
+      ]
+    };
     accessInput.value = sessionStorage.getItem("access_code") || "";
     function escapeHtml(value) {
       return String(value || "").replace(/[&<>"']/g, char => ({
@@ -569,6 +667,9 @@ def render_index_html() -> str:
     function updateAskState() {
       const hasQuestion = questionEl.value.trim().length > 0;
       const hasCode = accessInput.value.trim().length > 0;
+      charCountEl.textContent = questionEl.value.trim().length;
+      questionEl.style.height = "auto";
+      questionEl.style.height = Math.min(questionEl.scrollHeight, 280) + "px";
       askBtn.disabled = isLoading || !hasQuestion;
       copyBtn.disabled = !latestAnswerText;
       clearBtn.disabled = !latestAnswerText && !historyEl.dataset.ready;
@@ -642,6 +743,25 @@ def render_index_html() -> str:
       document.querySelectorAll("[data-category]").forEach(btn => {
         btn.classList.toggle("active", (btn.dataset.category || "") === (value || ""));
       });
+      const label = categoryLabels[value || ""] || "综合诊断";
+      questionModeEl.textContent = "当前：" + label;
+      recommendModeEl.textContent = label;
+      renderRecommendations(value || "");
+    }
+    function renderRecommendations(categoryKey) {
+      const questions = recommendedQuestions[categoryKey] || recommendedQuestions[""];
+      recommendListEl.innerHTML = questions.map(([question, cat]) => (
+        '<button type="button" data-recommend-q="' + escapeHtml(question) + '" data-recommend-cat="' + escapeHtml(cat) + '">' +
+        escapeHtml(question) +
+        '</button>'
+      )).join("");
+      recommendListEl.querySelectorAll("[data-recommend-q]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          questionEl.value = btn.dataset.recommendQ;
+          setCategory(btn.dataset.recommendCat || "");
+          updateAskState();
+        });
+      });
     }
     document.querySelectorAll("[data-category]").forEach(btn => {
       btn.addEventListener("click", () => setCategory(btn.dataset.category || ""));
@@ -682,6 +802,7 @@ def render_index_html() -> str:
         updateAskState();
       });
     });
+    renderRecommendations("");
     updateAskState();
     askBtn.addEventListener("click", async () => {
       const question = questionEl.value.trim();
