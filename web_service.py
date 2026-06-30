@@ -15,1234 +15,817 @@ DEFAULT_DB_PATH = Path(__file__).parent / "output" / "30tian_chuhai.sqlite"
 
 
 def render_index_html() -> str:
-    return """<!doctype html>
+    return """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>出海投放 AI 军师</title>
-  <style>
-    :root {
-      color-scheme: light;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f4f7fb;
-      color: #182230;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: #f4f7fb; color: #182230; }
-    button, textarea, select, input { font: inherit; }
-    button { cursor: pointer; }
-    .shell { min-height: 100vh; }
-    .topbar {
-      border-bottom: 1px solid #d9e0ea;
-      background: rgba(255,255,255,.92);
-      backdrop-filter: blur(12px);
-      position: sticky;
-      top: 0;
-      z-index: 5;
-    }
-    .topbar-inner {
-      max-width: 1240px;
-      margin: 0 auto;
-      padding: 14px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
-    .mark {
-      width: 38px;
-      height: 38px;
-      border-radius: 8px;
-      display: grid;
-      place-items: center;
-      color: #fff;
-      font-weight: 900;
-      background: linear-gradient(135deg, #0f766e, #2563eb);
-    }
-    h1 { font-size: 20px; line-height: 1.2; margin: 0; letter-spacing: 0; }
-    .subline { margin-top: 3px; color: #667085; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .status { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-    .pill {
-      border: 1px solid #d0d9e6;
-      background: #fff;
-      border-radius: 999px;
-      padding: 7px 10px;
-      font-size: 13px;
-      color: #344054;
-    }
-    main { max-width: 1240px; margin: 0 auto; padding: 22px 20px 42px; }
-    .summary {
-      display: grid;
-      grid-template-columns: 1.4fr repeat(3, minmax(150px, .5fr));
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .intro, .stat, .workspace-panel {
-      background: #fff;
-      border: 1px solid #d9e0ea;
-      border-radius: 8px;
-      box-shadow: 0 12px 34px rgba(24,34,48,.06);
-    }
-    .intro { padding: 16px 18px; }
-    .intro strong { display: block; font-size: 17px; margin-bottom: 4px; }
-    .intro span { color: #667085; line-height: 1.55; font-size: 14px; }
-    .stat { padding: 15px; }
-    .stat strong { display: block; font-size: 24px; color: #101828; }
-    .stat span { color: #667085; font-size: 13px; }
-    .workspace {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 360px;
-      gap: 16px;
-      align-items: start;
-    }
-    .workspace-panel { padding: 18px; }
-    .panel-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-    h2 { font-size: 18px; margin: 0; letter-spacing: 0; }
-    .panel-note { color: #667085; font-size: 13px; }
-    textarea {
-      width: 100%;
-      min-height: 156px;
-      max-height: 280px;
-      resize: vertical;
-      padding: 15px;
-      border: 1px solid #c9d3e1;
-      border-radius: 8px;
-      background: #fbfdff;
-      color: #182230;
-      line-height: 1.6;
-      outline: none;
-    }
-    textarea:focus, select:focus, input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
-    .question-footer {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      margin-top: 8px;
-      color: #667085;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-    .question-footer strong { color: #344054; }
-    .controls {
-      display: grid;
-      gap: 14px;
-      margin-top: 14px;
-    }
-    .field-label {
-      display: block;
-      color: #667085;
-      font-size: 12px;
-      font-weight: 800;
-      letter-spacing: .04em;
-      margin-bottom: 8px;
-      text-transform: uppercase;
-    }
-    .category-cards {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-    }
-    .category-card {
-      min-height: 70px;
-      padding: 12px;
-      border: 1px solid #d9e0ea;
-      border-radius: 8px;
-      background: #fff;
-      color: #344054;
-      text-align: left;
-      box-shadow: 0 1px 2px rgba(16,24,40,.04);
-    }
-    .category-card strong {
-      display: block;
-      color: #182230;
-      font-size: 14px;
-      line-height: 1.25;
-    }
-    .category-card span {
-      display: block;
-      margin-top: 5px;
-      color: #667085;
-      font-size: 12px;
-      line-height: 1.35;
-    }
-    .category-card.active {
-      border-color: #0f766e;
-      background: #effaf6;
-      box-shadow: inset 0 0 0 1px #0f766e, 0 6px 16px rgba(15,118,110,.10);
-    }
-    .ask-options {
-      display: grid;
-      grid-template-columns: 1fr minmax(180px, .72fr) 170px;
-      gap: 10px;
-      align-items: end;
-    }
-    .depth-toggle {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      min-height: 44px;
-      padding: 4px;
-      border: 1px solid #d9e0ea;
-      border-radius: 8px;
-      background: #f7faff;
-    }
-    .depth-toggle button {
-      border: 0;
-      border-radius: 6px;
-      background: transparent;
-      color: #475467;
-      font-weight: 800;
-    }
-    .depth-toggle button.active {
-      background: #fff;
-      color: #0f766e;
-      box-shadow: 0 1px 3px rgba(16,24,40,.10);
-    }
-    .loading-box {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: #344054;
-    }
-    .spinner {
-      width: 18px;
-      height: 18px;
-      border: 2px solid #c9d3e1;
-      border-top-color: #0f766e;
-      border-radius: 50%;
-      animation: spin .8s linear infinite;
-      flex: 0 0 auto;
-    }
-    .loading-text { font-weight: 800; }
-    .loading-dots::after {
-      content: "";
-      animation: dots 1.2s steps(4, end) infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes dots {
-      0% { content: ""; }
-      25% { content: "."; }
-      50% { content: ".."; }
-      75%, 100% { content: "..."; }
-    }
-    select, input {
-      width: 100%;
-      min-height: 44px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      border: 1px solid #c9d3e1;
-      background: #fff;
-      color: #182230;
-    }
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-    .primary {
-      min-height: 44px;
-      border: 0;
-      border-radius: 8px;
-      background: #0f766e;
-      color: #fff;
-      font-weight: 800;
-      box-shadow: 0 10px 20px rgba(15,118,110,.18);
-    }
-    .primary:hover { background: #115e59; }
-    .primary:disabled { opacity: .62; cursor: not-allowed; box-shadow: none; }
-    .hint { margin-top: 10px; color: #667085; font-size: 13px; }
-    .result-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 12px;
-      flex-wrap: wrap;
-    }
-    .secondary {
-      min-height: 36px;
-      padding: 8px 11px;
-      border: 1px solid #c9d3e1;
-      border-radius: 8px;
-      background: #fff;
-      color: #344054;
-      font-weight: 800;
-    }
-    .secondary:hover { background: #f7faff; border-color: #b7c6db; }
-    .secondary:disabled { opacity: .52; cursor: not-allowed; }
-    .feedback {
-      display: none;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 10px;
-      color: #667085;
-      font-size: 13px;
-    }
-    .feedback.active { display: flex; }
-    .feedback button {
-      min-height: 32px;
-      min-width: 42px;
-      border: 1px solid #c9d3e1;
-      border-radius: 8px;
-      background: #fff;
-      color: #344054;
-      font-weight: 800;
-    }
-    .feedback button.active {
-      border-color: #0f766e;
-      background: #effaf6;
-      color: #0f766e;
-    }
-    .result-shell {
-      max-height: 55vh;
-      overflow-y: auto;
-      margin-top: 14px;
-      padding-right: 4px;
-      scrollbar-color: #c9d3e1 transparent;
-    }
-    .result-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
-    .answer, .sources {
-      border: 1px solid #d9e0ea;
-      border-radius: 8px;
-      background: #fbfdff;
-      padding: 16px;
-      min-height: 58px;
-      line-height: 1.75;
-    }
-    .answer { white-space: pre-wrap; color: #182230; }
-    .sources { color: #344054; overflow-wrap: anywhere; }
-    .source-card {
-      border-top: 1px solid #e4eaf2;
-      padding-top: 10px;
-      margin-top: 10px;
-    }
-    .source-card:first-of-type { border-top: 0; margin-top: 8px; padding-top: 0; }
-    .source-title { font-weight: 800; color: #182230; }
-    .source-path { color: #667085; font-size: 12px; margin-top: 4px; }
-    .history {
-      margin-top: 16px;
-      border-top: 1px solid #e4eaf2;
-      padding-top: 14px;
-      max-height: 50vh;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
-    .history:empty { display: none; }
-    .history-title {
-      color: #475467;
-      font-size: 13px;
-      font-weight: 800;
-      margin-bottom: 10px;
-    }
-    .history-card {
-      border: 1px solid #d9e0ea;
-      border-radius: 8px;
-      background: #fff;
-      padding: 13px;
-      margin-top: 10px;
-    }
-    .history-question {
-      color: #182230;
-      font-weight: 800;
-      line-height: 1.5;
-    }
-    .history-answer {
-      color: #344054;
-      line-height: 1.7;
-      margin-top: 8px;
-      white-space: pre-wrap;
-    }
-    .history-meta {
-      color: #667085;
-      font-size: 12px;
-      margin-top: 8px;
-    }
-    .sidebar { display: grid; gap: 12px; }
-    .recommend {
-      border: 1px solid #d9e0ea;
-      border-radius: 8px;
-      background: #fbfdff;
-      padding: 13px;
-      margin-bottom: 12px;
-    }
-    .recommend-title {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      align-items: center;
-      color: #182230;
-      font-weight: 900;
-      margin-bottom: 9px;
-    }
-    .recommend-title span {
-      color: #667085;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .recommend button {
-      display: block;
-      width: 100%;
-      text-align: left;
-      margin: 7px 0 0;
-      padding: 10px 11px;
-      border: 1px solid #d9e0ea;
-      border-radius: 8px;
-      background: #fff;
-      color: #182230;
-      font-weight: 800;
-      line-height: 1.4;
-    }
-    .recommend button:hover { border-color: #0f766e; background: #effaf6; }
-    .sample-group { border-top: 1px solid #e4eaf2; padding-top: 13px; }
-    .sample-group:first-of-type { border-top: 0; padding-top: 0; }
-    .sample-group h3 { margin: 0 0 8px; color: #475467; font-size: 13px; font-weight: 800; }
-    .samples button {
-      display: block;
-      width: 100%;
-      text-align: left;
-      margin: 7px 0;
-      padding: 11px 12px;
-      border: 1px solid #e4eaf2;
-      border-radius: 8px;
-      background: #f7faff;
-      color: #1d2939;
-      font-weight: 720;
-    }
-    .samples button:hover { border-color: #b7c6db; background: #eef6ff; }
-    .tag-row { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
-    .tag { font-size: 12px; color: #475467; background: #eef2f7; border-radius: 999px; padding: 5px 8px; }
-    .error { color: #b42318; font-weight: 700; }
-    @media (max-width: 980px) {
-      .summary, .workspace { grid-template-columns: 1fr; }
-      .category-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .ask-options { grid-template-columns: 1fr 1fr; }
-      .primary { grid-column: 1 / -1; }
-    }
-    @media (max-width: 620px) {
-      .topbar-inner, main { padding-left: 14px; padding-right: 14px; }
-      .topbar-inner { align-items: flex-start; flex-direction: column; }
-      .status { justify-content: flex-start; }
-      .category-cards, .ask-options { grid-template-columns: 1fr; }
-      .workspace-panel, .intro, .stat { padding: 14px; }
-      h1 { font-size: 18px; }
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>出海投放 AI 军师</title>
+<style>
+  /* ===========================================================
+     设计令牌 —— 玻璃拟态 / 淡蓝主调
+     =========================================================== */
+  :root{
+    --blue-50:#EFF6FF;
+    --blue-100:#DCEBFF;
+    --blue-200:#BFDBFE;
+    --blue-300:#93C5FD;
+    --blue-400:#60A5FA;
+    --blue-500:#3B82F6;
+    --blue-600:#2563EB;
+    --blue-700:#1D4ED8;
+    --ink-900:#0F2540;
+    --ink-700:#274463;
+    --ink-500:#5C7693;
+    --ink-300:#8FA6BD;
 
-    /* OpenDesign handoff polish: product workbench layer */
-    :root {
-      --canvas: #eef3f7;
-      --surface: rgba(255,255,255,.86);
-      --surface-strong: #ffffff;
-      --ink: #142033;
-      --muted: #667085;
-      --line: rgba(148,163,184,.32);
-      --green: #11836f;
-      --blue: #2457d6;
-      --amber: #b7791f;
-      --danger: #b42318;
-      --shadow-soft: 0 18px 48px rgba(28, 42, 62, .08);
-      --shadow-lift: 0 20px 50px rgba(17, 131, 111, .14);
-      --radius-lg: 20px;
-      --radius-md: 14px;
-      --ease-out: cubic-bezier(.22, 1, .36, 1);
+    --glass-bg:rgba(255,255,255,0.55);
+    --glass-bg-soft:rgba(255,255,255,0.38);
+    --glass-bg-strong:rgba(255,255,255,0.72);
+    --glass-border:rgba(255,255,255,0.6);
+    --glass-border-blue:rgba(147,197,253,0.55);
+
+    --teal:#0EA5A4;
+    --teal-bg:rgba(14,165,164,0.12);
+    --coral:#E2574C;
+    --coral-bg:rgba(226,87,76,0.12);
+
+    --radius-sm:8px;
+    --radius-md:14px;
+    --radius-lg:22px;
+    --mono:'SF Mono','JetBrains Mono',Consolas,monospace;
+    --sans:-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Segoe UI', sans-serif;
+    --shadow-glass:0 8px 32px rgba(59,130,246,0.12), 0 1.5px 4px rgba(15,37,64,0.04);
+    --shadow-glass-lg:0 20px 60px rgba(59,130,246,0.18), 0 4px 12px rgba(15,37,64,0.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    color:var(--ink-900);
+    font-family:var(--sans);
+    line-height:1.6;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    position:relative;
+    overflow-x:hidden;
+    background:
+      radial-gradient(ellipse 800px 500px at 8% -5%, rgba(147,197,253,0.55), transparent 60%),
+      radial-gradient(ellipse 700px 600px at 95% 10%, rgba(191,219,254,0.65), transparent 55%),
+      radial-gradient(ellipse 900px 700px at 50% 110%, rgba(219,234,254,0.8), transparent 60%),
+      linear-gradient(180deg, #F4F9FF 0%, #EAF2FE 100%);
+  }
+  /* 装饰性光斑，营造玻璃景深 */
+  body::before, body::after{
+    content:'';
+    position:fixed;
+    border-radius:50%;
+    filter:blur(60px);
+    z-index:0;
+    pointer-events:none;
+  }
+  body::before{
+    width:420px;height:420px;
+    background:radial-gradient(circle, rgba(96,165,250,0.35), transparent 70%);
+    top:-120px; left:-100px;
+  }
+  body::after{
+    width:380px;height:380px;
+    background:radial-gradient(circle, rgba(147,197,253,0.4), transparent 70%);
+    bottom:-100px; right:-80px;
+  }
+
+  /* 通用玻璃面板 */
+  .glass{
+    background:var(--glass-bg);
+    backdrop-filter:blur(20px) saturate(160%);
+    -webkit-backdrop-filter:blur(20px) saturate(160%);
+    border:1px solid var(--glass-border);
+    box-shadow:var(--shadow-glass);
+  }
+
+  /* 顶部条 */
+  .topbar{
+    position:sticky;top:0;z-index:30;
+    margin:14px 16px 0;
+    padding:12px 20px;
+    border-radius:var(--radius-lg);
+    display:flex;align-items:center;gap:12px;
+  }
+  .topbar .mark{
+    width:36px;height:36px;border-radius:11px;
+    background:linear-gradient(155deg,var(--blue-400),var(--blue-600));
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-weight:700;font-size:13px;color:#fff;
+    flex-shrink:0;
+    box-shadow:0 4px 14px rgba(37,99,235,0.35);
+  }
+  .topbar h1{font-size:15px;font-weight:700;color:var(--ink-900);}
+  .topbar .sub{font-size:11px;color:var(--ink-500);font-family:var(--mono);}
+  .topbar-stats{margin-left:auto;display:flex;gap:18px;}
+  .topbar-stat{text-align:right;}
+  .topbar-stat b{display:block;font-size:14px;font-family:var(--mono);color:var(--blue-600);}
+  .topbar-stat span{font-size:10px;color:var(--ink-500);}
+  @media(max-width:640px){ .topbar-stats{display:none;} }
+
+  .session-pill{
+    margin-left:auto;
+    display:flex;align-items:center;gap:6px;
+    font-size:11px;color:var(--teal);
+    background:var(--teal-bg);
+    border:1px solid rgba(14,165,164,0.35);
+    padding:5px 11px;border-radius:999px;
+    font-family:var(--mono);
+  }
+  .session-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--teal);}
+
+  /* 主布局 */
+  .shell{
+    position:relative;z-index:1;
+    max-width:1100px;margin:14px auto 24px;
+    padding:0 16px;
+    display:grid;grid-template-columns:300px 1fr;
+    gap:16px;
+    min-height:calc(100vh - 110px);
+  }
+  @media(max-width:860px){
+    .shell{
+      grid-template-columns:minmax(0,1fr);
+      width:100%;
+      min-width:0;
     }
-    body {
-      background:
-        linear-gradient(180deg, #e8f0f5 0%, #f7f8fb 46%, #eef3f7 100%);
-      color: var(--ink);
-      -webkit-font-smoothing: antialiased;
+    .control-panel,.chat-panel{min-width:0;}
+  }
+
+  /* 左侧诊断控制台 */
+  .control-panel{
+    border-radius:var(--radius-lg);
+    padding:20px 18px;
+    display:flex;flex-direction:column;gap:22px;
+    align-self:start;
+  }
+  .panel-label{
+    font-size:11px;font-family:var(--mono);letter-spacing:.06em;
+    color:var(--ink-500);text-transform:uppercase;margin-bottom:10px;
+  }
+  .intent-grid{display:flex;flex-direction:column;gap:7px;}
+  .intent-btn{
+    text-align:left;
+    background:var(--glass-bg-soft);
+    border:1px solid var(--glass-border-blue);
+    border-radius:var(--radius-md);
+    padding:10px 12px;
+    color:var(--ink-700);
+    font-size:13px;
+    cursor:pointer;
+    transition:.18s;
+  }
+  .intent-btn strong{display:block;color:var(--ink-900);font-size:13px;font-weight:700;margin-bottom:2px;}
+  .intent-btn span{font-size:11px;color:var(--ink-500);}
+  .intent-btn:hover{background:var(--glass-bg);transform:translateY(-1px);}
+  .intent-btn.active{
+    border-color:var(--blue-400);
+    background:linear-gradient(135deg, rgba(96,165,250,0.22), rgba(191,219,254,0.3));
+    box-shadow:0 4px 14px rgba(59,130,246,0.18);
+  }
+  .intent-btn.active strong{color:var(--blue-700);}
+
+  .chip-row{display:flex;flex-wrap:wrap;gap:6px;}
+  @media(max-width:640px){
+    .chip-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+    .chip-row::-webkit-scrollbar{display:none;}
+    .chip{flex-shrink:0;}
+  }
+  .chip{
+    font-size:12px;padding:6px 13px;border-radius:999px;
+    border:1px solid var(--glass-border-blue);color:var(--ink-700);
+    background:var(--glass-bg-soft);cursor:pointer;white-space:nowrap;
+    transition:.15s;
+  }
+  .chip:hover{background:var(--glass-bg);}
+  .chip.active{
+    border-color:var(--teal);color:var(--teal);
+    background:var(--teal-bg);
+    font-weight:600;
+  }
+
+  .depth-row{display:flex;gap:6px;}
+  .depth-btn{
+    flex:1;padding:8px 0;text-align:center;font-size:12px;
+    border:1px solid var(--glass-border-blue);border-radius:var(--radius-sm);
+    background:var(--glass-bg-soft);color:var(--ink-700);cursor:pointer;
+    transition:.15s;
+  }
+  .depth-btn:hover{background:var(--glass-bg);}
+  .depth-btn.active{
+    background:linear-gradient(135deg, var(--blue-400), var(--blue-600));
+    border-color:var(--blue-600); color:#fff;font-weight:700;
+    box-shadow:0 4px 14px rgba(37,99,235,0.3);
+  }
+
+  /* 场景入口 */
+  .scenario-group{margin-bottom:4px;}
+  .scenario-title{font-size:11px;color:var(--ink-500);margin:10px 0 6px;font-family:var(--mono);}
+  .scenario-link{
+    display:block;width:100%;text-align:left;
+    background:none;border:none;color:var(--ink-700);
+    font-size:12.5px;padding:6px 2px;cursor:pointer;
+    border-bottom:1px dashed rgba(147,197,253,0.5);
+    transition:.15s;
+  }
+  .scenario-link:hover{color:var(--blue-600);padding-left:6px;}
+
+  /* 右侧对话区 */
+  .chat-panel{
+    border-radius:var(--radius-lg);
+    display:flex;flex-direction:column;min-height:0;
+    overflow:hidden;
+  }
+  .chat-scroll{flex:1;padding:24px 24px 0;overflow-y:auto;max-height:calc(100vh - 280px);}
+  .empty-state{
+    color:var(--ink-300);font-size:13px;text-align:center;
+    padding:60px 20px;font-family:var(--mono);
+  }
+
+  .msg{margin-bottom:18px;}
+  .msg-q{
+    background:linear-gradient(135deg, rgba(96,165,250,0.16), rgba(191,219,254,0.22));
+    border:1px solid var(--glass-border-blue);
+    border-radius:var(--radius-md);padding:12px 16px;
+    font-size:14px;color:var(--ink-900);margin-bottom:10px;
+    max-width:88%;
+  }
+  .msg-a{
+    border-left:2px solid var(--blue-400);
+    padding:4px 0 4px 16px;
+    font-size:14px;color:var(--ink-700);
+  }
+  .msg-a.loading{color:var(--ink-500);font-family:var(--mono);font-size:12.5px;}
+  .skel{display:flex;flex-direction:column;gap:8px;padding:6px 0;}
+  .skel-line{
+    height:10px;border-radius:4px;
+    background:linear-gradient(90deg, rgba(191,219,254,0.5) 0%, rgba(239,246,255,0.9) 50%, rgba(191,219,254,0.5) 100%);
+    background-size:200% 100%;
+    animation:shimmer 1.4s infinite;
+  }
+  @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+  .cold-start-note{margin-top:6px;font-size:11px;color:var(--ink-300);font-family:var(--mono);}
+
+  /* 来源引用 */
+  .sources{margin-top:10px;}
+  .sources-toggle{
+    font-size:11.5px;color:var(--teal);background:none;border:none;
+    cursor:pointer;display:flex;align-items:center;gap:5px;
+    font-family:var(--mono);padding:0;
+  }
+  .sources-toggle .chevron{transition:.15s;display:inline-block;}
+  .sources-toggle.open .chevron{transform:rotate(90deg);}
+  .sources-list{display:none;margin-top:8px;flex-direction:column;gap:6px;}
+  .sources-list.open{display:flex;}
+  .source-card{
+    background:var(--glass-bg-strong);
+    border:1px solid var(--glass-border-blue);border-radius:var(--radius-sm);
+    padding:8px 10px;font-size:12px;
+  }
+  .source-card .meta{display:flex;justify-content:space-between;margin-bottom:4px;}
+  .source-card .cat{color:var(--teal);font-family:var(--mono);font-size:10.5px;}
+  .source-card .score{color:var(--ink-300);font-family:var(--mono);font-size:10.5px;}
+  .source-card .excerpt{color:var(--ink-700);}
+
+  .feedback-row{display:flex;gap:8px;margin-top:10px;}
+  .fb-btn{
+    width:26px;height:26px;border-radius:8px;border:1px solid var(--glass-border-blue);
+    background:var(--glass-bg-soft);color:var(--ink-300);cursor:pointer;font-size:12px;
+    display:flex;align-items:center;justify-content:center;
+    transition:.15s;
+  }
+  .fb-btn:hover{background:var(--glass-bg);}
+  .fb-btn.picked-up{border-color:var(--teal);color:var(--teal);background:var(--teal-bg);}
+  .fb-btn.picked-down{border-color:var(--coral);color:var(--coral);background:var(--coral-bg);}
+
+  /* 输入区 */
+  .composer{
+    padding:14px 24px 20px;
+    border-top:1px solid var(--glass-border-blue);
+    background:var(--glass-bg-soft);
+  }
+  .composer-row{display:flex;gap:10px;}
+  .composer textarea{
+    flex:1;resize:none;background:var(--glass-bg-strong);
+    border:1px solid var(--glass-border-blue);border-radius:var(--radius-md);
+    padding:11px 14px;color:var(--ink-900);font-size:14px;
+    font-family:var(--sans);min-height:46px;max-height:120px;
+  }
+  .composer textarea::placeholder{color:var(--ink-300);}
+  .composer textarea:focus{outline:none;border-color:var(--blue-400);box-shadow:0 0 0 3px rgba(96,165,250,0.18);}
+  .send-btn{
+    background:linear-gradient(135deg, var(--blue-400), var(--blue-600));
+    border:none;border-radius:var(--radius-md);
+    padding:0 20px;color:#fff;font-weight:700;font-size:13px;
+    cursor:pointer;white-space:nowrap;
+    box-shadow:0 6px 18px rgba(37,99,235,0.32);
+    transition:.15s;
+  }
+  .send-btn:hover{box-shadow:0 8px 22px rgba(37,99,235,0.4); transform:translateY(-1px);}
+  .send-btn:disabled{background:var(--ink-300);box-shadow:none;cursor:not-allowed;transform:none;}
+  .composer-meta{display:flex;justify-content:space-between;margin-top:8px;}
+  .composer-meta button{background:none;border:none;color:var(--ink-300);font-size:11.5px;cursor:pointer;}
+  .composer-meta button:hover{color:var(--blue-600);}
+
+  /* 访问码入口模态框 */
+  .gate-overlay{
+    position:fixed;inset:0;
+    background:linear-gradient(160deg, rgba(191,219,254,0.6), rgba(239,246,255,0.75));
+    backdrop-filter:blur(6px);
+    display:flex;align-items:center;justify-content:center;z-index:100;
+    padding:20px;
+  }
+  .gate-overlay.hidden{display:none;}
+  .gate-card{
+    background:var(--glass-bg-strong);
+    backdrop-filter:blur(24px) saturate(160%);
+    -webkit-backdrop-filter:blur(24px) saturate(160%);
+    border:1px solid var(--glass-border);
+    box-shadow:var(--shadow-glass-lg);
+    border-radius:var(--radius-lg);padding:30px 28px;max-width:380px;width:100%;
+  }
+  .gate-card .mark{
+    width:42px;height:42px;border-radius:13px;margin-bottom:14px;
+    background:linear-gradient(155deg,var(--blue-400),var(--blue-600));
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-weight:700;font-size:14px;color:#fff;
+    box-shadow:0 6px 18px rgba(37,99,235,0.35);
+  }
+  .gate-card h2{font-size:17px;margin-bottom:6px;color:var(--ink-900);}
+  .gate-card p{font-size:12.5px;color:var(--ink-500);margin-bottom:18px;}
+  .gate-card input{
+    width:100%;background:rgba(255,255,255,0.7);border:1px solid var(--glass-border-blue);
+    border-radius:var(--radius-sm);padding:11px 14px;color:var(--ink-900);
+    font-size:14px;font-family:var(--mono);letter-spacing:.08em;margin-bottom:10px;
+  }
+  .gate-card input:focus{outline:none;border-color:var(--blue-400);box-shadow:0 0 0 3px rgba(96,165,250,0.2);}
+  .gate-error{font-size:12px;color:var(--coral);margin-bottom:10px;min-height:16px;}
+  .gate-submit{
+    width:100%;
+    background:linear-gradient(135deg, var(--blue-400), var(--blue-600));
+    border:none;border-radius:var(--radius-sm);
+    padding:12px 0;color:#fff;font-weight:700;font-size:13.5px;cursor:pointer;
+    box-shadow:0 6px 18px rgba(37,99,235,0.32);
+  }
+  .gate-submit:disabled{opacity:.5;cursor:not-allowed;}
+  .gate-hint{font-size:11px;color:var(--ink-300);margin-top:12px;text-align:center;}
+  @media(max-width:640px){
+    .topbar{
+      position:relative;
+      top:auto;
+      margin:8px 8px 0;
+      padding:10px 12px;
     }
-    .shell {
-      position: relative;
-      isolation: isolate;
-    }
-    .shell::before {
-      content: "";
-      position: absolute;
-      inset: 0 0 auto;
-      height: 260px;
-      z-index: -1;
-      background:
-        linear-gradient(135deg, rgba(13, 84, 77, .96), rgba(31, 77, 164, .88) 52%, rgba(15, 23, 42, .92));
-    }
-    .topbar {
-      border-bottom: 1px solid rgba(255,255,255,.18);
-      background: rgba(16, 32, 52, .72);
-      color: #fff;
-    }
-    .topbar-inner { padding-top: 16px; padding-bottom: 16px; }
-    .mark {
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #37c39a, #2d6cdf);
-      box-shadow: 0 12px 24px rgba(45,108,223,.24);
-    }
-    h1 { color: #fff; font-size: 21px; font-weight: 900; }
-    .subline { color: rgba(255,255,255,.72); }
-    .pill {
-      border-color: rgba(255,255,255,.22);
-      background: rgba(255,255,255,.12);
-      color: rgba(255,255,255,.88);
-      backdrop-filter: blur(10px);
-    }
-    .pill::before {
-      content: "";
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      margin-right: 7px;
-      border-radius: 99px;
-      background: #50d49f;
-      vertical-align: 1px;
-    }
-    main { padding-top: 28px; }
-    .summary {
-      grid-template-columns: minmax(0, 1.45fr) repeat(3, minmax(140px, .45fr));
-      gap: 14px;
-      margin-bottom: 14px;
-    }
-    .intro, .stat, .workspace-panel {
-      border-color: rgba(255,255,255,.68);
-      border-radius: var(--radius-lg);
-      background: var(--surface);
-      box-shadow: var(--shadow-soft);
-      backdrop-filter: blur(18px);
-    }
-    .intro {
-      position: relative;
-      min-height: 176px;
-      overflow: hidden;
-      padding: 24px;
-      color: #fff;
-      background:
-        linear-gradient(135deg, rgba(20,32,51,.96), rgba(17,95,84,.92) 54%, rgba(36,87,214,.78));
-    }
-    .intro::after {
-      content: "RAG";
-      position: absolute;
-      right: 24px;
-      bottom: -18px;
-      color: rgba(255,255,255,.08);
-      font-size: 96px;
-      line-height: 1;
-      font-weight: 1000;
-      letter-spacing: 0;
-    }
-    .intro strong {
-      max-width: 560px;
-      color: #fff;
-      font-size: clamp(26px, 4vw, 44px);
-      line-height: 1.05;
-      letter-spacing: 0;
-      margin-bottom: 14px;
-    }
-    .intro span {
-      position: relative;
-      z-index: 1;
-      display: block;
-      max-width: 650px;
-      color: rgba(255,255,255,.78);
-      font-size: 15px;
-      line-height: 1.75;
-    }
-    .stat {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 176px;
-      padding: 20px;
-    }
-    .stat strong { font-size: 30px; letter-spacing: 0; }
-    .stat span { line-height: 1.5; }
-    .stat::before {
-      content: "";
-      width: 38px;
-      height: 6px;
-      border-radius: 99px;
-      background: linear-gradient(90deg, var(--green), var(--blue));
-    }
-    .workflow-strip {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-    .workflow-step {
-      min-height: 76px;
-      padding: 14px;
-      border: 1px solid rgba(255,255,255,.66);
-      border-radius: 16px;
-      background: rgba(255,255,255,.74);
-      box-shadow: 0 10px 26px rgba(28,42,62,.05);
-    }
-    .workflow-step small {
-      display: block;
-      color: var(--green);
-      font-size: 12px;
-      font-weight: 900;
-      margin-bottom: 7px;
-    }
-    .workflow-step strong {
-      display: block;
-      color: var(--ink);
-      font-size: 14px;
-      line-height: 1.35;
-    }
-    .workspace {
-      grid-template-columns: minmax(0, 1fr) 372px;
-      gap: 18px;
-    }
-    .workspace-panel { padding: 20px; }
-    .question-panel {
-      border-top: 4px solid rgba(17,131,111,.88);
-    }
-    .panel-head { margin-bottom: 16px; }
-    .panel-note {
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: #eef6f3;
-      color: #247464;
-      font-weight: 800;
-    }
-    .field-label {
-      color: #3b4a5f;
-      letter-spacing: 0;
-      text-transform: none;
-    }
-    textarea {
-      min-height: 170px;
-      border-radius: 16px;
-      border-color: rgba(148,163,184,.42);
-      background: linear-gradient(180deg, #fff, #f8fbff);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
-      transition: border-color .18s var(--ease-out), box-shadow .18s var(--ease-out);
-    }
-    textarea:focus, select:focus, input:focus {
-      border-color: var(--green);
-      box-shadow: 0 0 0 4px rgba(17,131,111,.12);
-    }
-    .question-footer {
-      padding: 0 2px;
-      font-weight: 700;
-    }
-    .category-cards { gap: 10px; }
-    .category-card {
-      position: relative;
-      min-height: 88px;
-      border-radius: 16px;
-      padding: 14px;
-      transition: transform .16s var(--ease-out), border-color .16s var(--ease-out), box-shadow .16s var(--ease-out), background-color .16s var(--ease-out);
-    }
-    .category-card:hover {
-      transform: translateY(-1px);
-      border-color: rgba(17,131,111,.38);
-      box-shadow: 0 12px 24px rgba(28,42,62,.07);
-    }
-    .category-card strong { font-size: 15px; }
-    .category-card span { color: #667085; }
-    .category-card.active {
-      border-color: rgba(17,131,111,.9);
-      background: linear-gradient(180deg, #f0fbf7, #fff);
-      box-shadow: inset 0 0 0 1px rgba(17,131,111,.55), var(--shadow-lift);
-    }
-    .category-card.active::after {
-      content: "";
-      position: absolute;
-      top: 13px;
-      right: 13px;
-      width: 9px;
-      height: 9px;
-      border-radius: 99px;
-      background: var(--green);
-      box-shadow: 0 0 0 4px rgba(17,131,111,.12);
-    }
-    .ask-options {
-      grid-template-columns: 1.05fr minmax(190px, .7fr) 180px;
-      padding: 14px;
-      border: 1px solid rgba(148,163,184,.26);
-      border-radius: 18px;
-      background: #f8fbff;
-    }
-    .depth-toggle {
-      border-radius: 14px;
-      background: #eef3f8;
-      border-color: transparent;
-    }
-    .depth-toggle button { border-radius: 11px; }
-    .depth-toggle button.active {
-      color: var(--green);
-      box-shadow: 0 8px 18px rgba(28,42,62,.10);
-    }
-    select, input {
-      border-radius: 14px;
-      border-color: rgba(148,163,184,.42);
-    }
-    .primary {
-      min-height: 46px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #11836f, #2457d6);
-      box-shadow: 0 14px 28px rgba(36,87,214,.18);
-      transition: transform .16s var(--ease-out), box-shadow .16s var(--ease-out), filter .16s var(--ease-out);
-    }
-    .primary:hover {
-      background: linear-gradient(135deg, #0f766e, #1d4ed8);
-      filter: saturate(1.06);
-      transform: translateY(-1px);
-    }
-    .hint {
-      padding: 11px 12px;
-      border-radius: 14px;
-      background: #f8fbff;
-      color: #53657d;
-      line-height: 1.55;
-    }
-    .secondary {
-      border-radius: 12px;
-      background: #fff;
-    }
-    .result-shell {
-      border: 1px solid rgba(148,163,184,.22);
-      border-radius: 18px;
-      padding: 12px;
-      background: #f8fbff;
-    }
-    .answer, .sources, .history-card {
-      border-radius: 15px;
-      background: #fff;
-    }
-    .answer {
-      min-height: 86px;
-      font-size: 15px;
-    }
-    .sources {
-      background: #fbfcff;
-    }
-    .loading-box {
-      min-height: 62px;
-      padding: 12px;
-      border-radius: 14px;
-      background: #f0fbf7;
-      color: #176f61;
-    }
-    .sidebar {
-      position: sticky;
-      top: 88px;
-      display: grid;
-      gap: 14px;
-    }
-    .samples {
-      padding: 18px;
-      background: rgba(255,255,255,.80);
-    }
-    .recommend {
-      border-radius: 18px;
-      background:
-        linear-gradient(180deg, rgba(240,251,247,.96), rgba(255,255,255,.96));
-      padding: 14px;
-    }
-    .recommend button, .samples button {
-      border-radius: 14px;
-      transition: transform .16s var(--ease-out), border-color .16s var(--ease-out), background-color .16s var(--ease-out);
-    }
-    .recommend button:hover, .samples button:hover {
-      transform: translateX(2px);
-    }
-    .sample-group {
-      padding: 13px;
-      border: 1px solid rgba(148,163,184,.22);
-      border-radius: 16px;
-      background: rgba(255,255,255,.62);
-      margin-top: 10px;
-    }
-    .sample-group:first-of-type { margin-top: 0; }
-    .sample-group h3 {
-      color: #26384f;
-      font-size: 14px;
-    }
-    .tag {
-      background: rgba(36,87,214,.08);
-      color: #2457d6;
-      font-weight: 800;
-    }
-    .feedback {
-      justify-content: space-between;
-      padding: 10px 12px;
-      border-radius: 14px;
-      background: #fff8eb;
-    }
-    .feedback button.active {
-      border-color: var(--amber);
-      background: #fff4db;
-      color: #8a5a13;
-    }
-    @media (max-width: 1100px) {
-      .summary { grid-template-columns: 1fr 1fr; }
-      .intro { grid-column: 1 / -1; }
-      .workflow-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .workspace { grid-template-columns: 1fr; }
-      .sidebar { position: static; }
-    }
-    @media (max-width: 620px) {
-      .shell::before { height: 310px; }
-      main { padding-top: 18px; }
-      .summary, .workflow-strip { grid-template-columns: 1fr; }
-      .intro { min-height: auto; }
-      .intro strong { font-size: 28px; }
-      .stat { min-height: 112px; }
-      .ask-options {
-        grid-template-columns: 1fr;
-        padding: 12px;
-      }
-      .panel-note { width: 100%; }
-      .result-shell { max-height: 62vh; }
-    }
-  </style>
+    .session-pill{display:none!important;}
+    .shell{padding:0 8px;gap:10px;}
+    .control-panel{padding:14px 12px;gap:16px;}
+    .chat-scroll{max-height:56vh;padding:16px 14px 0;}
+    .composer{padding:12px 14px 14px;}
+    .composer-row{flex-direction:column;}
+    .send-btn{min-height:42px;}
+    .msg-q{max-width:100%;}
+  }
+</style>
 </head>
 <body>
-  <div class="shell">
-    <header class="topbar">
-      <div class="topbar-inner">
-        <div class="brand">
-          <div class="mark">AI</div>
-          <div>
-            <h1>出海投放 AI 军师</h1>
-            <div class="subline">30天出海指挥部知识库 · 私有问答助手</div>
-          </div>
-        </div>
-        <div class="status">
-          <span class="pill">客户试点版</span>
-          <span class="pill">引用来源可追溯</span>
-          <span class="pill">访问码保护</span>
-        </div>
-      </div>
-    </header>
 
-    <main>
-      <section class="summary">
-        <div class="intro">
-          <strong>把投放经验变成可追问的策略军师</strong>
-          <span>面向出海投放团队的私有知识库问答台。输入真实业务问题，系统会检索 SOP、复盘、素材规则和踩坑经验，输出可执行建议和引用来源。</span>
-        </div>
-        <div class="stat"><strong>381</strong><span>已入库知识片段</span></div>
-        <div class="stat"><strong>5</strong><span>投放业务场景</span></div>
-        <div class="stat"><strong>3档</strong><span>快速 / 标准 / 深入回答</span></div>
-      </section>
-
-      <section class="workflow-strip" aria-label="诊断流程">
-        <div class="workflow-step"><small>01 提问</small><strong>用口语描述真实投放问题</strong></div>
-        <div class="workflow-step"><small>02 检索</small><strong>从 SOP、复盘和规则里找证据</strong></div>
-        <div class="workflow-step"><small>03 诊断</small><strong>拆原因、给动作、标风险</strong></div>
-        <div class="workflow-step"><small>04 复用</small><strong>复制到日报、培训或客户沟通</strong></div>
-      </section>
-
-      <section class="workspace">
-      <div class="workspace-panel question-panel">
-        <div class="panel-head">
-          <h2>投放诊断台</h2>
-          <span class="panel-note">建议输入真实业务问题</span>
-        </div>
-        <textarea id="question" placeholder="例如：ROI 下滑但 CTR 没变，是落地页问题还是事件回传问题？"></textarea>
-        <div class="question-footer">
-          <span id="questionMode">当前：综合诊断</span>
-          <span><strong id="charCount">0</strong> 字</span>
-        </div>
-        <div class="controls">
-          <div>
-            <label class="field-label">选择诊断方向</label>
-            <div class="category-cards" role="listbox" aria-label="问题类型">
-              <button type="button" class="category-card active" data-category="">
-                <strong>综合诊断</strong><span>不确定原因时先选这个</span>
-              </button>
-              <button type="button" class="category-card" data-category="ad_strategy">
-                <strong>投放决策</strong><span>预算、ROI、人群、放量</span>
-              </button>
-              <button type="button" class="category-card" data-category="creative_copy">
-                <strong>素材文案</strong><span>Hook、脚本、素材疲劳</span>
-              </button>
-              <button type="button" class="category-card" data-category="tech_execution">
-                <strong>数据回传</strong><span>Pixel、CAPI、落地页性能</span>
-              </button>
-              <button type="button" class="category-card" data-category="risk_playbook">
-                <strong>止损风控</strong><span>空烧、封控、自动规则</span>
-              </button>
-              <button type="button" class="category-card" data-category="review_cases">
-                <strong>复盘归因</strong><span>亏损定位和日报复盘</span>
-              </button>
-            </div>
-            <select id="category" class="sr-only" aria-label="问题类型">
-              <option value="">全部知识库</option>
-              <option value="ad_strategy">投放策略库</option>
-              <option value="creative_copy">素材与文案库</option>
-              <option value="tech_execution">技术落地库</option>
-              <option value="risk_playbook">风控与踩坑库</option>
-              <option value="review_cases">复盘案例库</option>
-            </select>
-          </div>
-          <div class="ask-options">
-            <div>
-              <label class="field-label">回答颗粒度</label>
-              <div class="depth-toggle" aria-label="建议深度">
-                <button type="button" data-limit="2" data-depth="quick">快速</button>
-                <button type="button" class="active" data-limit="3" data-depth="standard">标准</button>
-                <button type="button" data-limit="5" data-depth="deep">深入</button>
-              </div>
-              <input id="limit" class="sr-only" type="number" min="1" max="8" value="3" />
-              <input id="depth" class="sr-only" type="text" value="standard" />
-            </div>
-            <div>
-              <label class="field-label" for="accessCode">客户访问码</label>
-              <input id="accessCode" type="password" placeholder="输入项目访问码" autocomplete="current-password" />
-            </div>
-            <button id="ask" class="primary">生成策略建议</button>
-          </div>
-        </div>
-        <div id="formHint" class="hint">请输入演示访问码后生成建议。访问码由项目负责人提供。</div>
-        <div class="result-actions">
-          <button id="copyAnswer" type="button" class="secondary" disabled>复制回答</button>
-          <button id="clearChat" type="button" class="secondary" disabled>清除对话</button>
-        </div>
-        <div id="feedback" class="feedback">
-          <span>这条回答有帮助吗？</span>
-          <button type="button" data-feedback="up">有用</button>
-          <button type="button" data-feedback="down">没用</button>
-        </div>
-        <div class="result-shell" aria-live="polite">
-          <div class="result-grid">
-            <div id="answer" class="answer">等待提问。</div>
-            <div id="sources" class="sources"></div>
-          </div>
-          <div id="history" class="history"></div>
-        </div>
-      </div>
-      <aside class="workspace-panel samples">
-        <div class="panel-head">
-          <h2>试点问题库</h2>
-          <span class="panel-note">点击即填入</span>
-        </div>
-        <div class="recommend">
-          <div class="recommend-title">当前推荐 <span id="recommendMode">综合诊断</span></div>
-          <div id="recommendList"></div>
-        </div>
-        <div class="sample-group">
-          <h3>投放策略</h3>
-          <button data-q="钱一直烧但是不出单咋办？" data-cat="">烧钱没单怎么办？</button>
-          <button data-q="ROI 小于 1 持续两天怎么办？应该关停还是降预算？" data-cat="ad_strategy">ROI 低：关停还是降预算？</button>
-          <button data-q="CTR 高但是 CVR 很低，应该优先排查素材、落地页还是人群？" data-cat="ad_strategy">CTR 高但 CVR 低怎么排查？</button>
-          <button data-q="TOFU、MOFU、BOFU 分别应该怎么做人群排除？" data-cat="ad_strategy">漏斗人群排除怎么做？</button>
-        </div>
-        <div class="sample-group">
-          <h3>素材文案</h3>
-          <button data-q="FB 爆款五步法文案怎么写？" data-cat="creative_copy">FB 爆款文案五步法</button>
-          <button data-q="Hook 不够强，怎么改成更高 CTR 的开头？" data-cat="creative_copy">Hook 如何改得更抓人？</button>
-          <button data-q="素材疲劳应该看哪些信号？" data-cat="creative_copy">素材疲劳看哪些信号？</button>
-        </div>
-        <div class="sample-group">
-          <h3>技术落地</h3>
-          <button data-q="Pixel、CAPI、事件回传应该怎么配置才干净？" data-cat="tech_execution">Pixel/CAPI 回传怎么配置？</button>
-          <button data-q="动态参数路由里的 pid、goal、segment 分别承担什么作用？" data-cat="tech_execution">动态参数路由怎么拆？</button>
-          <button data-q="LCP、CLS、TBT 超预算时先修哪里？" data-cat="tech_execution">页面性能超预算先修哪里？</button>
-        </div>
-        <div class="sample-group">
-          <h3>风控复盘</h3>
-          <button data-q="半夜空烧怎么设置自动拦截规则？" data-cat="risk_playbook">半夜空烧怎么拦截？</button>
-          <button data-q="自动化规则怎么避免误杀好计划？" data-cat="risk_playbook">自动规则如何防误杀？</button>
-          <button data-q="今天亏损应该归因到素材、受众、落地页还是技术链路？" data-cat="review_cases">亏损复盘怎么归因？</button>
-        </div>
-        <div class="tag-row">
-          <span class="tag">ROI</span>
-          <span class="tag">素材疲劳</span>
-          <span class="tag">Pixel/CAPI</span>
-          <span class="tag">风控熔断</span>
-        </div>
-      </aside>
-    </section>
-    </main>
+  <!-- ============ 访问码入口 ============ -->
+  <div class="gate-overlay" id="gateOverlay">
+    <div class="gate-card">
+      <div class="mark">军师</div>
+      <h2>出海投放 AI 军师</h2>
+      <p>30 天出海指挥部知识库 · 输入演示访问码以继续。访问码由项目负责人提供。</p>
+      <input type="text" id="gateInput" placeholder="演示访问码" autocomplete="off" />
+      <div class="gate-error" id="gateError"></div>
+      <button class="gate-submit" id="gateSubmit">进入诊断台</button>
+      <div class="gate-hint">提示：可使用 ?code=xxxx 的链接直接跳过此步</div>
+    </div>
   </div>
-  <script>
-    const answerEl = document.getElementById("answer");
-    const sourcesEl = document.getElementById("sources");
-    const askBtn = document.getElementById("ask");
-    const questionEl = document.getElementById("question");
-    const accessInput = document.getElementById("accessCode");
-    const formHint = document.getElementById("formHint");
-    const historyEl = document.getElementById("history");
-    const copyBtn = document.getElementById("copyAnswer");
-    const clearBtn = document.getElementById("clearChat");
-    const feedbackEl = document.getElementById("feedback");
-    const charCountEl = document.getElementById("charCount");
-    const questionModeEl = document.getElementById("questionMode");
-    const recommendModeEl = document.getElementById("recommendMode");
-    const recommendListEl = document.getElementById("recommendList");
-    let latestAnswerText = "";
-    let latestQuestionText = "";
-    let isLoading = false;
-    let loadingTimers = [];
-    const categoryLabels = {
-      "": "综合诊断",
-      "ad_strategy": "投放决策",
-      "creative_copy": "素材文案",
-      "tech_execution": "数据回传",
-      "risk_playbook": "止损风控",
-      "review_cases": "复盘归因"
-    };
-    const recommendedQuestions = {
-      "": [
-        ["钱一直烧但是不出单咋办？", ""],
-        ["ROI 下滑但 CTR 没变，是落地页问题还是事件回传问题？", ""],
-        ["今天亏损应该先查素材、人群、落地页还是技术链路？", ""]
-      ],
-      "ad_strategy": [
-        ["ROI 小于 1 持续两天，应该关停还是降预算？", "ad_strategy"],
-        ["CTR 高但 CVR 低，投放上先排查什么？", "ad_strategy"],
-        ["TOFU、MOFU、BOFU 怎么做人群排除？", "ad_strategy"]
-      ],
-      "creative_copy": [
-        ["Hook 不够强，怎么改成更高 CTR 的开头？", "creative_copy"],
-        ["素材疲劳应该看哪些信号？", "creative_copy"],
-        ["FB 爆款五步法文案怎么写？", "creative_copy"]
-      ],
-      "tech_execution": [
-        ["Pixel、CAPI、事件回传怎么配置才干净？", "tech_execution"],
-        ["动态参数路由里的 pid、goal、segment 分别是什么？", "tech_execution"],
-        ["LCP、CLS、TBT 超预算时先修哪里？", "tech_execution"]
-      ],
-      "risk_playbook": [
-        ["半夜空烧怎么设置自动拦截规则？", "risk_playbook"],
-        ["自动化规则怎么避免误杀好计划？", "risk_playbook"],
-        ["Merchant Score 变差时应该先暂停什么？", "risk_playbook"]
-      ],
-      "review_cases": [
-        ["亏损复盘怎么判断是素材、受众还是落地页问题？", "review_cases"],
-        ["投放日报里 CPA 为 0 但 ROAS 正常该怎么解释？", "review_cases"],
-        ["怎么把一次失败投放整理成可复用 SOP？", "review_cases"]
-      ]
-    };
-    accessInput.value = sessionStorage.getItem("access_code") || "";
-    function escapeHtml(value) {
-      return String(value || "").replace(/[&<>"']/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-      })[char]);
-    }
-    function updateAskState() {
-      const hasQuestion = questionEl.value.trim().length > 0;
-      const hasCode = accessInput.value.trim().length > 0;
-      charCountEl.textContent = questionEl.value.trim().length;
-      questionEl.style.height = "auto";
-      questionEl.style.height = Math.min(questionEl.scrollHeight, 280) + "px";
-      askBtn.disabled = isLoading || !hasQuestion;
-      copyBtn.disabled = !latestAnswerText;
-      clearBtn.disabled = !latestAnswerText && !historyEl.dataset.ready;
-      feedbackEl.classList.toggle("active", Boolean(latestAnswerText));
-      if (isLoading) return;
-      if (!hasCode) {
-        formHint.textContent = "请输入演示访问码后生成建议。访问码由项目负责人提供。";
-      } else if (!hasQuestion) {
-        formHint.textContent = "先输入一个真实投放问题，再生成策略建议。";
-      } else {
-        formHint.textContent = "准备就绪，点击生成策略建议。";
-      }
-    }
-    function setLoadingStep(text) {
-      answerEl.innerHTML = '<div class="loading-box"><span class="spinner"></span><span class="loading-text">' + escapeHtml(text) + '<span class="loading-dots"></span></span></div>';
-      formHint.textContent = text;
-    }
-    function startLoading() {
-      isLoading = true;
-      askBtn.disabled = true;
-      askBtn.textContent = "正在分析...";
-      setLoadingStep("正在检索知识库");
-      loadingTimers = [
-        setTimeout(() => setLoadingStep("正在生成策略建议"), 1000),
-        setTimeout(() => setLoadingStep("正在整理引用来源"), 3500),
-      ];
-    }
-    function stopLoading() {
-      loadingTimers.forEach(timer => clearTimeout(timer));
-      loadingTimers = [];
-      isLoading = false;
-      askBtn.textContent = "生成策略建议";
-      updateAskState();
-    }
-    function renderHistoryItem(question, answer, sources) {
-      const sourceCount = Array.isArray(sources) ? sources.length : 0;
-      if (!historyEl.dataset.ready) {
-        historyEl.innerHTML = '<div class="history-title">诊断记录</div>';
-        historyEl.dataset.ready = "true";
-      }
-      historyEl.insertAdjacentHTML("beforeend", (
-        '<div class="history-card">' +
-        '<div class="history-question">' + escapeHtml(question) + '</div>' +
-        '<div class="history-answer">' + escapeHtml(answer) + '</div>' +
-        '<div class="history-meta">引用来源 ' + sourceCount + ' 条</div>' +
-        '</div>'
-      ));
-    }
-    function recordFeedback(value) {
-      if (!latestAnswerText) return;
-      const items = JSON.parse(localStorage.getItem("rag_feedback") || "[]");
-      items.push({
-        value,
-        question: latestQuestionText,
-        answerPreview: latestAnswerText.slice(0, 240),
-        createdAt: new Date().toISOString()
+
+  <div class="topbar glass">
+    <div class="mark">军师</div>
+    <div>
+      <h1>出海投放 AI 军师</h1>
+      <div class="sub">30天出海指挥部知识库 · 私有问答助手</div>
+    </div>
+    <div class="topbar-stats">
+      <div class="topbar-stat"><b>381</b><span>知识片段</span></div>
+      <div class="topbar-stat"><b>5</b><span>业务分类</span></div>
+      <div class="topbar-stat"><b>AI</b><span>策略建议</span></div>
+    </div>
+    <div class="session-pill" id="sessionPill"><span class="dot"></span>已验证</div>
+  </div>
+
+  <div class="shell">
+
+    <!-- ============ 左侧诊断控制台 ============ -->
+    <div class="control-panel glass">
+      <div>
+        <div class="panel-label">你要解决哪类问题</div>
+        <div class="intent-grid" id="intentGrid">
+          <button class="intent-btn active" data-intent="综合诊断"><strong>综合诊断</strong><span>不确定原因时先选这个</span></button>
+          <button class="intent-btn" data-intent="投放决策"><strong>投放决策</strong><span>预算、ROI、人群、放量</span></button>
+          <button class="intent-btn" data-intent="素材文案"><strong>素材文案</strong><span>Hook、脚本、素材疲劳</span></button>
+          <button class="intent-btn" data-intent="数据回传"><strong>数据回传</strong><span>Pixel、CAPI、落地页性能</span></button>
+          <button class="intent-btn" data-intent="止损风控"><strong>止损风控</strong><span>空烧、封控、自动规则</span></button>
+          <button class="intent-btn" data-intent="复盘归因"><strong>复盘归因</strong><span>亏损定位和日报复盘</span></button>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel-label">知识库范围</div>
+        <div class="chip-row" id="kbChips">
+          <button class="chip active" data-kb="全部知识库">全部知识库</button>
+          <button class="chip" data-kb="投放策略库">投放策略库</button>
+          <button class="chip" data-kb="素材与文案库">素材与文案库</button>
+          <button class="chip" data-kb="技术落地库">技术落地库</button>
+          <button class="chip" data-kb="风控与踩坑库">风控与踩坑库</button>
+          <button class="chip" data-kb="复盘案例库">复盘案例库</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel-label">建议深度</div>
+        <div class="depth-row" id="depthRow">
+          <button class="depth-btn" data-depth="快速">快速</button>
+          <button class="depth-btn active" data-depth="标准">标准</button>
+          <button class="depth-btn" data-depth="深入">深入</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="scenario-group">
+          <div class="scenario-title">投放策略</div>
+          <button class="scenario-link">烧钱没单怎么办？</button>
+          <button class="scenario-link">ROI 低：关停还是降预算？</button>
+          <button class="scenario-link">CTR 高但 CVR 低怎么排查？</button>
+          <button class="scenario-link">漏斗人群排除怎么做？</button>
+        </div>
+        <div class="scenario-group">
+          <div class="scenario-title">素材文案</div>
+          <button class="scenario-link">FB 爆款文案五步法</button>
+          <button class="scenario-link">Hook 如何改得更抓人？</button>
+          <button class="scenario-link">素材疲劳看哪些信号？</button>
+        </div>
+        <div class="scenario-group">
+          <div class="scenario-title">技术落地</div>
+          <button class="scenario-link">Pixel/CAPI 回传怎么配置？</button>
+          <button class="scenario-link">动态参数路由怎么拆？</button>
+          <button class="scenario-link">页面性能超预算先修哪里？</button>
+        </div>
+        <div class="scenario-group">
+          <div class="scenario-title">风控复盘</div>
+          <button class="scenario-link">半夜空烧怎么拦截？</button>
+          <button class="scenario-link">自动规则如何防误杀？</button>
+          <button class="scenario-link">亏损复盘怎么归因？</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 右侧对话区 ============ -->
+    <div class="chat-panel glass">
+      <div class="chat-scroll" id="chatScroll">
+        <div class="empty-state" id="emptyState">等待提问 · 建议输入真实业务问题</div>
+      </div>
+
+      <div class="composer">
+        <div class="composer-row">
+          <textarea id="composerInput" placeholder="例如：FB 投放三天没出单，预算该砍还是该等？" rows="1"></textarea>
+          <button class="send-btn" id="sendBtn">生成策略建议</button>
+        </div>
+        <div class="composer-meta">
+          <button id="clearBtn">清除对话</button>
+          <button id="copyBtn">复制最近回答</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+/* =====================================================================
+   配置区 —— 接入真实后端时只需要改这里
+   ===================================================================== */
+const CONFIG = {
+  QUERY_ENDPOINT: '/api/ask',
+  COLD_START_THRESHOLD_MS: 3000,
+};
+
+const CATEGORY_BY_LABEL = {
+  '综合诊断': '',
+  '全部知识库': '',
+  '投放决策': 'ad_strategy',
+  '投放策略库': 'ad_strategy',
+  '素材文案': 'creative_copy',
+  '素材与文案库': 'creative_copy',
+  '数据回传': 'tech_execution',
+  '技术落地库': 'tech_execution',
+  '止损风控': 'risk_playbook',
+  '风控与踩坑库': 'risk_playbook',
+  '复盘归因': 'review_cases',
+  '复盘案例库': 'review_cases',
+};
+
+const DEPTH_CONFIG = {
+  '快速': { depth: 'quick', limit: 2 },
+  '标准': { depth: 'standard', limit: 3 },
+  '深入': { depth: 'deep', limit: 5 },
+};
+
+const SCENARIO_QUESTIONS = {
+  '烧钱没单怎么办？': '钱一直烧但是不出单咋办？',
+  'ROI 低：关停还是降预算？': 'ROI 小于 1 持续两天怎么办？应该关停还是降预算？',
+  'CTR 高但 CVR 低怎么排查？': 'CTR 高但是 CVR 很低，应该优先排查素材、落地页还是人群？',
+  '漏斗人群排除怎么做？': 'TOFU、MOFU、BOFU 分别应该怎么做人群排除？',
+  'FB 爆款文案五步法': 'FB 爆款五步法文案怎么写？',
+  'Hook 如何改得更抓人？': 'Hook 不够强，怎么改成更高 CTR 的开头？',
+  '素材疲劳看哪些信号？': '素材疲劳应该看哪些信号？',
+  'Pixel/CAPI 回传怎么配置？': 'Pixel、CAPI、事件回传应该怎么配置才干净？',
+  '动态参数路由怎么拆？': '动态参数路由里的 pid、goal、segment 分别承担什么作用？',
+  '页面性能超预算先修哪里？': 'LCP、CLS、TBT 超预算时先修哪里？',
+  '半夜空烧怎么拦截？': '半夜空烧怎么设置自动拦截规则？',
+  '自动规则如何防误杀？': '自动化规则怎么避免误杀好计划？',
+  '亏损复盘怎么归因？': '今天亏损应该归因到素材、受众、落地页还是技术链路？',
+};
+
+const SCENARIO_KB_BY_GROUP = {
+  '投放策略': '投放策略库',
+  '素材文案': '素材与文案库',
+  '技术落地': '技术落地库',
+  '风控复盘': '风控与踩坑库',
+};
+
+const state = {
+  intent: '综合诊断',
+  kb: '全部知识库',
+  depth: '标准',
+  token: sessionStorage.getItem('access_code') || null,
+  lastAnswerEl: null,
+};
+
+const gateOverlay = document.getElementById('gateOverlay');
+const gateInput = document.getElementById('gateInput');
+const gateError = document.getElementById('gateError');
+const gateSubmit = document.getElementById('gateSubmit');
+const sessionPill = document.getElementById('sessionPill');
+
+function showGate(message){
+  gateOverlay.classList.remove('hidden');
+  if(message) gateError.textContent = message;
+}
+function hideGate(){
+  gateOverlay.classList.add('hidden');
+  sessionPill.style.display = 'flex';
+}
+
+async function verifyCode(code){
+  gateSubmit.disabled = true;
+  gateError.textContent = '';
+  try{
+    const cleanCode = code.trim();
+    if(cleanCode.length < 4){ throw new Error('访问码格式不正确'); }
+    state.token = cleanCode;
+    sessionStorage.setItem('access_code', state.token);
+    hideGate();
+  }catch(err){
+    gateError.textContent = err.message || '验证失败，请重试';
+  }finally{
+    gateSubmit.disabled = false;
+  }
+}
+
+gateSubmit.addEventListener('click', () => verifyCode(gateInput.value));
+gateInput.addEventListener('keydown', e => { if(e.key === 'Enter') verifyCode(gateInput.value); });
+
+(function initGate(){
+  const params = new URLSearchParams(window.location.search);
+  const urlCode = params.get('code');
+  if(state.token){
+    hideGate();
+  } else if(urlCode){
+    gateInput.value = urlCode;
+    verifyCode(urlCode);
+  } else {
+    showGate();
+  }
+})();
+
+/* ============ 左侧控制面板交互 ============ */
+document.getElementById('intentGrid').addEventListener('click', e => {
+  const btn = e.target.closest('.intent-btn');
+  if(!btn) return;
+  document.querySelectorAll('.intent-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.intent = btn.dataset.intent;
+});
+
+document.getElementById('kbChips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if(!chip) return;
+  document.querySelectorAll('#kbChips .chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  state.kb = chip.dataset.kb;
+});
+
+document.getElementById('depthRow').addEventListener('click', e => {
+  const btn = e.target.closest('.depth-btn');
+  if(!btn) return;
+  document.querySelectorAll('.depth-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  state.depth = btn.dataset.depth;
+});
+
+document.querySelectorAll('.scenario-link').forEach(link => {
+  link.addEventListener('click', () => {
+    composerInput.value = SCENARIO_QUESTIONS[link.textContent.trim()] || link.textContent.trim();
+    const groupTitle = link.closest('.scenario-group')?.querySelector('.scenario-title')?.textContent.trim();
+    const targetKb = SCENARIO_KB_BY_GROUP[groupTitle];
+    if(targetKb){
+      state.kb = targetKb;
+      document.querySelectorAll('#kbChips .chip').forEach(chip => {
+        chip.classList.toggle('active', chip.dataset.kb === targetKb);
       });
-      localStorage.setItem("rag_feedback", JSON.stringify(items.slice(-50)));
-      feedbackEl.querySelectorAll("[data-feedback]").forEach(btn => {
-        btn.classList.toggle("active", btn.dataset.feedback === value);
-      });
-      formHint.textContent = value === "up" ? "已记录：这条回答有帮助。" : "已记录：这条回答需要改进。";
     }
-    accessInput.addEventListener("input", () => {
-      sessionStorage.setItem("access_code", accessInput.value.trim());
-      updateAskState();
+    composerInput.focus();
+  });
+});
+
+/* ============ 对话区渲染 ============ */
+const chatScroll = document.getElementById('chatScroll');
+const emptyState = document.getElementById('emptyState');
+const composerInput = document.getElementById('composerInput');
+const sendBtn = document.getElementById('sendBtn');
+
+function appendQuestion(text){
+  emptyState.style.display = 'none';
+  const div = document.createElement('div');
+  div.className = 'msg';
+  div.innerHTML = `<div class="msg-q">${escapeHtml(text)}</div>`;
+  chatScroll.appendChild(div);
+  chatScroll.scrollTop = chatScroll.scrollHeight;
+  return div;
+}
+
+function appendLoadingAnswer(){
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-a loading';
+  wrap.innerHTML = `
+    <div class="skel">
+      <div class="skel-line" style="width:92%"></div>
+      <div class="skel-line" style="width:78%"></div>
+      <div class="skel-line" style="width:85%"></div>
+    </div>
+    <div class="cold-start-note" id="coldStartNote" style="display:none">知识库引擎启动中，首次请求可能需要 30 秒…</div>
+  `;
+  chatScroll.lastElementChild.appendChild(wrap);
+  chatScroll.scrollTop = chatScroll.scrollHeight;
+  return wrap;
+}
+
+function renderAnswer(container, answerText, sources){
+  container.classList.remove('loading');
+  const sourcesHtml = sources && sources.length ? `
+    <div class="sources">
+      <button class="sources-toggle"><span class="chevron">›</span> 查看 ${sources.length} 条引用来源</button>
+      <div class="sources-list">
+        ${sources.map(s => `
+          <div class="source-card">
+            <div class="meta"><span class="cat">${escapeHtml(s.category)}</span><span class="score">相关度 ${s.score}</span></div>
+            <div class="excerpt">${escapeHtml(s.excerpt)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>` : '';
+
+  container.innerHTML = `
+    <div class="answer-text">${escapeHtml(answerText)}</div>
+    ${sourcesHtml}
+    <div class="feedback-row">
+      <button class="fb-btn" data-fb="up" title="有用">👍</button>
+      <button class="fb-btn" data-fb="down" title="没用">👎</button>
+    </div>
+  `;
+
+  const toggle = container.querySelector('.sources-toggle');
+  if(toggle){
+    toggle.addEventListener('click', () => {
+      toggle.classList.toggle('open');
+      toggle.nextElementSibling.classList.toggle('open');
     });
-    questionEl.addEventListener("input", updateAskState);
-    function setCategory(value) {
-      document.getElementById("category").value = value || "";
-      document.querySelectorAll("[data-category]").forEach(btn => {
-        btn.classList.toggle("active", (btn.dataset.category || "") === (value || ""));
-      });
-      const label = categoryLabels[value || ""] || "综合诊断";
-      questionModeEl.textContent = "当前：" + label;
-      recommendModeEl.textContent = label;
-      renderRecommendations(value || "");
+  }
+  container.querySelectorAll('.fb-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      container.querySelectorAll('.fb-btn').forEach(b => b.classList.remove('picked-up','picked-down'));
+      btn.classList.add(btn.dataset.fb === 'up' ? 'picked-up' : 'picked-down');
+      recordFeedback(btn.dataset.fb);
+    });
+  });
+
+  state.lastAnswerEl = container;
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function recordFeedback(value){
+  const answerText = state.lastAnswerEl?.querySelector('.answer-text')?.textContent || '';
+  const items = JSON.parse(localStorage.getItem('rag_feedback') || '[]');
+  items.push({ value, answerPreview: answerText.slice(0, 240), createdAt: new Date().toISOString() });
+  localStorage.setItem('rag_feedback', JSON.stringify(items.slice(-50)));
+}
+
+/* ============ 提交问题 ============ */
+async function submitQuestion(){
+  const text = composerInput.value.trim();
+  if(!text || sendBtn.disabled) return;
+  if(!state.token){ showGate('请先输入访问码'); return; }
+
+  appendQuestion(text);
+  composerInput.value = '';
+  sendBtn.disabled = true;
+
+  const loadingEl = appendLoadingAnswer();
+  const coldStartTimer = setTimeout(() => {
+    const note = loadingEl.querySelector('#coldStartNote');
+    if(note) note.style.display = 'block';
+  }, CONFIG.COLD_START_THRESHOLD_MS);
+
+  try{
+    const depthConfig = DEPTH_CONFIG[state.depth] || DEPTH_CONFIG['标准'];
+    const categoryKey = CATEGORY_BY_LABEL[state.kb] || CATEGORY_BY_LABEL[state.intent] || null;
+    const res = await fetch(CONFIG.QUERY_ENDPOINT, {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+state.token
+      },
+      body: JSON.stringify({
+        question:text,
+        category_key: categoryKey || null,
+        limit: depthConfig.limit,
+        depth: depthConfig.depth,
+        use_llm: true
+      })
+    });
+    const contentType = res.headers.get('content-type') || '';
+    const data = contentType.includes('application/json') ? await res.json() : { error: await res.text() };
+    if(res.status === 401){
+      state.token = null;
+      sessionStorage.removeItem('access_code');
+      showGate('访问码不正确，请重新输入');
+      return;
     }
-    function renderRecommendations(categoryKey) {
-      const questions = recommendedQuestions[categoryKey] || recommendedQuestions[""];
-      recommendListEl.innerHTML = questions.map(([question, cat]) => (
-        '<button type="button" data-recommend-q="' + escapeHtml(question) + '" data-recommend-cat="' + escapeHtml(cat) + '">' +
-        escapeHtml(question) +
-        '</button>'
-      )).join("");
-      recommendListEl.querySelectorAll("[data-recommend-q]").forEach(btn => {
-        btn.addEventListener("click", () => {
-          questionEl.value = btn.dataset.recommendQ;
-          setCategory(btn.dataset.recommendCat || "");
-          updateAskState();
-        });
-      });
-    }
-    document.querySelectorAll("[data-category]").forEach(btn => {
-      btn.addEventListener("click", () => setCategory(btn.dataset.category || ""));
-    });
-    document.querySelectorAll("[data-limit]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.getElementById("limit").value = btn.dataset.limit;
-        document.getElementById("depth").value = btn.dataset.depth || "standard";
-        document.querySelectorAll("[data-limit]").forEach(item => item.classList.toggle("active", item === btn));
-      });
-    });
-    copyBtn.addEventListener("click", async () => {
-      if (!latestAnswerText) return;
-      try {
-        await navigator.clipboard.writeText(latestAnswerText);
-        formHint.textContent = "回答已复制，可以粘贴到复盘、群聊或客户沟通里。";
-      } catch (err) {
-        formHint.textContent = "复制失败，请手动选中回答内容复制。";
-      }
-    });
-    clearBtn.addEventListener("click", () => {
-      latestAnswerText = "";
-      latestQuestionText = "";
-      answerEl.textContent = "等待提问。";
-      sourcesEl.textContent = "";
-      historyEl.innerHTML = "";
-      delete historyEl.dataset.ready;
-      feedbackEl.querySelectorAll("[data-feedback]").forEach(btn => btn.classList.remove("active"));
-      updateAskState();
-    });
-    feedbackEl.querySelectorAll("[data-feedback]").forEach(btn => {
-      btn.addEventListener("click", () => recordFeedback(btn.dataset.feedback));
-    });
-    document.querySelectorAll("[data-q]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        questionEl.value = btn.dataset.q;
-        setCategory(btn.dataset.cat || "");
-        updateAskState();
-      });
-    });
-    renderRecommendations("");
-    updateAskState();
-    askBtn.addEventListener("click", async () => {
-      const question = questionEl.value.trim();
-      if (!question) {
-        updateAskState();
-        return;
-      }
-      startLoading();
-      sourcesEl.textContent = "";
-      try {
-        const accessCode = accessInput.value.trim();
-        if (!accessCode) {
-          throw new Error("请输入演示访问码。");
-        }
-        sessionStorage.setItem("access_code", accessCode);
-        const headers = {"Content-Type": "application/json"};
-        if (accessCode) headers["Authorization"] = `Bearer ${accessCode}`;
-        const res = await fetch("/api/ask", {
-          method: "POST",
-          headers,
-          body: JSON.stringify({
-            question,
-            category_key: document.getElementById("category").value || null,
-            limit: Number(document.getElementById("limit").value || 3),
-            depth: document.getElementById("depth").value || "standard",
-            use_llm: true
-          })
-        });
-        const contentType = res.headers.get("content-type") || "";
-        const data = contentType.includes("application/json")
-          ? await res.json()
-          : {error: await res.text()};
-        if (!res.ok) {
-          const message = res.status === 401
-            ? "访问码不正确，请重新输入。"
-            : "生成失败，请稍后重试。如持续失败请联系项目负责人。";
-          throw new Error(message);
-        }
-        latestQuestionText = question;
-        latestAnswerText = data.answer || "";
-        answerEl.textContent = latestAnswerText;
-        feedbackEl.querySelectorAll("[data-feedback]").forEach(btn => btn.classList.remove("active"));
-        if (Array.isArray(data.sources) && data.sources.length) {
-          sourcesEl.innerHTML = "<strong>引用来源</strong>" + data.sources.map(s => (
-            '<div class="source-card"><div class="source-title">[' +
-            escapeHtml(s.source_number) + "] " + escapeHtml(s.title) +
-            '</div><div class="source-path">' + escapeHtml(s.source_path) + '</div></div>'
-          )).join("");
-        } else {
-          sourcesEl.innerHTML = '<strong>引用来源</strong><div class="source-path">暂无命中来源</div>';
-        }
-        renderHistoryItem(question, latestAnswerText, data.sources || []);
-      } catch (err) {
-        latestAnswerText = "";
-        latestQuestionText = "";
-        answerEl.innerHTML = '<span class="error">' + escapeHtml(err.message) + '</span>';
-      } finally {
-        stopLoading();
-      }
-    });
-  </script>
+    if(!res.ok){ throw new Error(data.error || '生成失败，请稍后重试'); }
+    data.sources = (data.sources || []).map(source => ({
+      category: source.category || state.kb || '知识库',
+      score: source.source_number ? '来源 ' + source.source_number : '命中',
+      excerpt: [source.title, source.source_path].filter(Boolean).join(' · ') || '已命中相关知识片段'
+    }));
+
+
+    clearTimeout(coldStartTimer);
+    renderAnswer(loadingEl, data.answer, data.sources);
+  }catch(err){
+    clearTimeout(coldStartTimer);
+    loadingEl.classList.remove('loading');
+    loadingEl.innerHTML = `<div style="color:var(--coral)">请求失败，请重试。${escapeHtml(err.message||'')}</div>`;
+  }finally{
+    sendBtn.disabled = false;
+    chatScroll.scrollTop = chatScroll.scrollHeight;
+  }
+}
+
+sendBtn.addEventListener('click', submitQuestion);
+composerInput.addEventListener('keydown', e => {
+  if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); submitQuestion(); }
+});
+composerInput.addEventListener('input', () => {
+  composerInput.style.height = 'auto';
+  composerInput.style.height = Math.min(composerInput.scrollHeight, 120) + 'px';
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  chatScroll.innerHTML = '';
+  chatScroll.appendChild(emptyState);
+  emptyState.style.display = 'block';
+});
+
+document.getElementById('copyBtn').addEventListener('click', async () => {
+  if(!state.lastAnswerEl) return;
+  const text = state.lastAnswerEl.querySelector('.answer-text')?.textContent || '';
+  await navigator.clipboard.writeText(text);
+});
+</script>
 </body>
 </html>
+
 """
 
 
