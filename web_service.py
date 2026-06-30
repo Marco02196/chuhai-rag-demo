@@ -440,6 +440,376 @@ def render_index_html() -> str:
       .workspace-panel, .intro, .stat { padding: 14px; }
       h1 { font-size: 18px; }
     }
+
+    /* OpenDesign handoff polish: product workbench layer */
+    :root {
+      --canvas: #eef3f7;
+      --surface: rgba(255,255,255,.86);
+      --surface-strong: #ffffff;
+      --ink: #142033;
+      --muted: #667085;
+      --line: rgba(148,163,184,.32);
+      --green: #11836f;
+      --blue: #2457d6;
+      --amber: #b7791f;
+      --danger: #b42318;
+      --shadow-soft: 0 18px 48px rgba(28, 42, 62, .08);
+      --shadow-lift: 0 20px 50px rgba(17, 131, 111, .14);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --ease-out: cubic-bezier(.22, 1, .36, 1);
+    }
+    body {
+      background:
+        linear-gradient(180deg, #e8f0f5 0%, #f7f8fb 46%, #eef3f7 100%);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+    .shell {
+      position: relative;
+      isolation: isolate;
+    }
+    .shell::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto;
+      height: 260px;
+      z-index: -1;
+      background:
+        linear-gradient(135deg, rgba(13, 84, 77, .96), rgba(31, 77, 164, .88) 52%, rgba(15, 23, 42, .92));
+    }
+    .topbar {
+      border-bottom: 1px solid rgba(255,255,255,.18);
+      background: rgba(16, 32, 52, .72);
+      color: #fff;
+    }
+    .topbar-inner { padding-top: 16px; padding-bottom: 16px; }
+    .mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #37c39a, #2d6cdf);
+      box-shadow: 0 12px 24px rgba(45,108,223,.24);
+    }
+    h1 { color: #fff; font-size: 21px; font-weight: 900; }
+    .subline { color: rgba(255,255,255,.72); }
+    .pill {
+      border-color: rgba(255,255,255,.22);
+      background: rgba(255,255,255,.12);
+      color: rgba(255,255,255,.88);
+      backdrop-filter: blur(10px);
+    }
+    .pill::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-right: 7px;
+      border-radius: 99px;
+      background: #50d49f;
+      vertical-align: 1px;
+    }
+    main { padding-top: 28px; }
+    .summary {
+      grid-template-columns: minmax(0, 1.45fr) repeat(3, minmax(140px, .45fr));
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .intro, .stat, .workspace-panel {
+      border-color: rgba(255,255,255,.68);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(18px);
+    }
+    .intro {
+      position: relative;
+      min-height: 176px;
+      overflow: hidden;
+      padding: 24px;
+      color: #fff;
+      background:
+        linear-gradient(135deg, rgba(20,32,51,.96), rgba(17,95,84,.92) 54%, rgba(36,87,214,.78));
+    }
+    .intro::after {
+      content: "RAG";
+      position: absolute;
+      right: 24px;
+      bottom: -18px;
+      color: rgba(255,255,255,.08);
+      font-size: 96px;
+      line-height: 1;
+      font-weight: 1000;
+      letter-spacing: 0;
+    }
+    .intro strong {
+      max-width: 560px;
+      color: #fff;
+      font-size: clamp(26px, 4vw, 44px);
+      line-height: 1.05;
+      letter-spacing: 0;
+      margin-bottom: 14px;
+    }
+    .intro span {
+      position: relative;
+      z-index: 1;
+      display: block;
+      max-width: 650px;
+      color: rgba(255,255,255,.78);
+      font-size: 15px;
+      line-height: 1.75;
+    }
+    .stat {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 176px;
+      padding: 20px;
+    }
+    .stat strong { font-size: 30px; letter-spacing: 0; }
+    .stat span { line-height: 1.5; }
+    .stat::before {
+      content: "";
+      width: 38px;
+      height: 6px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+    }
+    .workflow-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .workflow-step {
+      min-height: 76px;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,.66);
+      border-radius: 16px;
+      background: rgba(255,255,255,.74);
+      box-shadow: 0 10px 26px rgba(28,42,62,.05);
+    }
+    .workflow-step small {
+      display: block;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 900;
+      margin-bottom: 7px;
+    }
+    .workflow-step strong {
+      display: block;
+      color: var(--ink);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+    .workspace {
+      grid-template-columns: minmax(0, 1fr) 372px;
+      gap: 18px;
+    }
+    .workspace-panel { padding: 20px; }
+    .question-panel {
+      border-top: 4px solid rgba(17,131,111,.88);
+    }
+    .panel-head { margin-bottom: 16px; }
+    .panel-note {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #eef6f3;
+      color: #247464;
+      font-weight: 800;
+    }
+    .field-label {
+      color: #3b4a5f;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+    textarea {
+      min-height: 170px;
+      border-radius: 16px;
+      border-color: rgba(148,163,184,.42);
+      background: linear-gradient(180deg, #fff, #f8fbff);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+      transition: border-color .18s var(--ease-out), box-shadow .18s var(--ease-out);
+    }
+    textarea:focus, select:focus, input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 4px rgba(17,131,111,.12);
+    }
+    .question-footer {
+      padding: 0 2px;
+      font-weight: 700;
+    }
+    .category-cards { gap: 10px; }
+    .category-card {
+      position: relative;
+      min-height: 88px;
+      border-radius: 16px;
+      padding: 14px;
+      transition: transform .16s var(--ease-out), border-color .16s var(--ease-out), box-shadow .16s var(--ease-out), background-color .16s var(--ease-out);
+    }
+    .category-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(17,131,111,.38);
+      box-shadow: 0 12px 24px rgba(28,42,62,.07);
+    }
+    .category-card strong { font-size: 15px; }
+    .category-card span { color: #667085; }
+    .category-card.active {
+      border-color: rgba(17,131,111,.9);
+      background: linear-gradient(180deg, #f0fbf7, #fff);
+      box-shadow: inset 0 0 0 1px rgba(17,131,111,.55), var(--shadow-lift);
+    }
+    .category-card.active::after {
+      content: "";
+      position: absolute;
+      top: 13px;
+      right: 13px;
+      width: 9px;
+      height: 9px;
+      border-radius: 99px;
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(17,131,111,.12);
+    }
+    .ask-options {
+      grid-template-columns: 1.05fr minmax(190px, .7fr) 180px;
+      padding: 14px;
+      border: 1px solid rgba(148,163,184,.26);
+      border-radius: 18px;
+      background: #f8fbff;
+    }
+    .depth-toggle {
+      border-radius: 14px;
+      background: #eef3f8;
+      border-color: transparent;
+    }
+    .depth-toggle button { border-radius: 11px; }
+    .depth-toggle button.active {
+      color: var(--green);
+      box-shadow: 0 8px 18px rgba(28,42,62,.10);
+    }
+    select, input {
+      border-radius: 14px;
+      border-color: rgba(148,163,184,.42);
+    }
+    .primary {
+      min-height: 46px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #11836f, #2457d6);
+      box-shadow: 0 14px 28px rgba(36,87,214,.18);
+      transition: transform .16s var(--ease-out), box-shadow .16s var(--ease-out), filter .16s var(--ease-out);
+    }
+    .primary:hover {
+      background: linear-gradient(135deg, #0f766e, #1d4ed8);
+      filter: saturate(1.06);
+      transform: translateY(-1px);
+    }
+    .hint {
+      padding: 11px 12px;
+      border-radius: 14px;
+      background: #f8fbff;
+      color: #53657d;
+      line-height: 1.55;
+    }
+    .secondary {
+      border-radius: 12px;
+      background: #fff;
+    }
+    .result-shell {
+      border: 1px solid rgba(148,163,184,.22);
+      border-radius: 18px;
+      padding: 12px;
+      background: #f8fbff;
+    }
+    .answer, .sources, .history-card {
+      border-radius: 15px;
+      background: #fff;
+    }
+    .answer {
+      min-height: 86px;
+      font-size: 15px;
+    }
+    .sources {
+      background: #fbfcff;
+    }
+    .loading-box {
+      min-height: 62px;
+      padding: 12px;
+      border-radius: 14px;
+      background: #f0fbf7;
+      color: #176f61;
+    }
+    .sidebar {
+      position: sticky;
+      top: 88px;
+      display: grid;
+      gap: 14px;
+    }
+    .samples {
+      padding: 18px;
+      background: rgba(255,255,255,.80);
+    }
+    .recommend {
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(240,251,247,.96), rgba(255,255,255,.96));
+      padding: 14px;
+    }
+    .recommend button, .samples button {
+      border-radius: 14px;
+      transition: transform .16s var(--ease-out), border-color .16s var(--ease-out), background-color .16s var(--ease-out);
+    }
+    .recommend button:hover, .samples button:hover {
+      transform: translateX(2px);
+    }
+    .sample-group {
+      padding: 13px;
+      border: 1px solid rgba(148,163,184,.22);
+      border-radius: 16px;
+      background: rgba(255,255,255,.62);
+      margin-top: 10px;
+    }
+    .sample-group:first-of-type { margin-top: 0; }
+    .sample-group h3 {
+      color: #26384f;
+      font-size: 14px;
+    }
+    .tag {
+      background: rgba(36,87,214,.08);
+      color: #2457d6;
+      font-weight: 800;
+    }
+    .feedback {
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: #fff8eb;
+    }
+    .feedback button.active {
+      border-color: var(--amber);
+      background: #fff4db;
+      color: #8a5a13;
+    }
+    @media (max-width: 1100px) {
+      .summary { grid-template-columns: 1fr 1fr; }
+      .intro { grid-column: 1 / -1; }
+      .workflow-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .workspace { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+    }
+    @media (max-width: 620px) {
+      .shell::before { height: 310px; }
+      main { padding-top: 18px; }
+      .summary, .workflow-strip { grid-template-columns: 1fr; }
+      .intro { min-height: auto; }
+      .intro strong { font-size: 28px; }
+      .stat { min-height: 112px; }
+      .ask-options {
+        grid-template-columns: 1fr;
+        padding: 12px;
+      }
+      .panel-note { width: 100%; }
+      .result-shell { max-height: 62vh; }
+    }
   </style>
 </head>
 <body>
@@ -454,8 +824,8 @@ def render_index_html() -> str:
           </div>
         </div>
         <div class="status">
-          <span class="pill">私有试点</span>
-          <span class="pill">来源可追溯</span>
+          <span class="pill">客户试点版</span>
+          <span class="pill">引用来源可追溯</span>
           <span class="pill">访问码保护</span>
         </div>
       </div>
@@ -464,18 +834,25 @@ def render_index_html() -> str:
     <main>
       <section class="summary">
         <div class="intro">
-          <strong>投放问题诊断台</strong>
-          <span>把 SOP、复盘、素材规则和踩坑经验整理成可检索的策略建议，适合做客户试点和团队内部培训。</span>
+          <strong>把投放经验变成可追问的策略军师</strong>
+          <span>面向出海投放团队的私有知识库问答台。输入真实业务问题，系统会检索 SOP、复盘、素材规则和踩坑经验，输出可执行建议和引用来源。</span>
         </div>
-        <div class="stat"><strong>381</strong><span>知识片段</span></div>
-        <div class="stat"><strong>5</strong><span>业务分类</span></div>
-        <div class="stat"><strong>AI 军师</strong><span>策略建议</span></div>
+        <div class="stat"><strong>381</strong><span>已入库知识片段</span></div>
+        <div class="stat"><strong>5</strong><span>投放业务场景</span></div>
+        <div class="stat"><strong>3档</strong><span>快速 / 标准 / 深入回答</span></div>
+      </section>
+
+      <section class="workflow-strip" aria-label="诊断流程">
+        <div class="workflow-step"><small>01 提问</small><strong>用口语描述真实投放问题</strong></div>
+        <div class="workflow-step"><small>02 检索</small><strong>从 SOP、复盘和规则里找证据</strong></div>
+        <div class="workflow-step"><small>03 诊断</small><strong>拆原因、给动作、标风险</strong></div>
+        <div class="workflow-step"><small>04 复用</small><strong>复制到日报、培训或客户沟通</strong></div>
       </section>
 
       <section class="workspace">
-      <div class="workspace-panel">
+      <div class="workspace-panel question-panel">
         <div class="panel-head">
-          <h2>策略问答</h2>
+          <h2>投放诊断台</h2>
           <span class="panel-note">建议输入真实业务问题</span>
         </div>
         <textarea id="question" placeholder="例如：ROI 下滑但 CTR 没变，是落地页问题还是事件回传问题？"></textarea>
@@ -485,7 +862,7 @@ def render_index_html() -> str:
         </div>
         <div class="controls">
           <div>
-            <label class="field-label">你要解决哪类问题</label>
+            <label class="field-label">选择诊断方向</label>
             <div class="category-cards" role="listbox" aria-label="问题类型">
               <button type="button" class="category-card active" data-category="">
                 <strong>综合诊断</strong><span>不确定原因时先选这个</span>
@@ -517,7 +894,7 @@ def render_index_html() -> str:
           </div>
           <div class="ask-options">
             <div>
-              <label class="field-label">建议深度</label>
+              <label class="field-label">回答颗粒度</label>
               <div class="depth-toggle" aria-label="建议深度">
                 <button type="button" data-limit="2" data-depth="quick">快速</button>
                 <button type="button" class="active" data-limit="3" data-depth="standard">标准</button>
@@ -527,8 +904,8 @@ def render_index_html() -> str:
               <input id="depth" class="sr-only" type="text" value="standard" />
             </div>
             <div>
-              <label class="field-label" for="accessCode">演示访问码</label>
-              <input id="accessCode" type="password" placeholder="输入访问码" autocomplete="current-password" />
+              <label class="field-label" for="accessCode">客户访问码</label>
+              <input id="accessCode" type="password" placeholder="输入项目访问码" autocomplete="current-password" />
             </div>
             <button id="ask" class="primary">生成策略建议</button>
           </div>
@@ -553,8 +930,8 @@ def render_index_html() -> str:
       </div>
       <aside class="workspace-panel samples">
         <div class="panel-head">
-          <h2>场景入口</h2>
-          <span class="panel-note">点击填入问题</span>
+          <h2>试点问题库</h2>
+          <span class="panel-note">点击即填入</span>
         </div>
         <div class="recommend">
           <div class="recommend-title">当前推荐 <span id="recommendMode">综合诊断</span></div>
