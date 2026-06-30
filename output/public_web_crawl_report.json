@@ -1,0 +1,100 @@
+{
+  "sources": {
+    "meta_pixel": {
+      "url": "https://www.facebook.com/business/help/952192354843755",
+      "status": 200,
+      "title": "设置和安装 Meta Pixel 像素代码 | Meta Business 帮助中心",
+      "text_length": 0,
+      "domain": "www.facebook.com"
+    },
+    "meta_capi": {
+      "url": "https://www.facebook.com/business/help/2041148702652965",
+      "status": 200,
+      "title": "转化 API 简介 | Meta Business 帮助中心",
+      "text_length": 0,
+      "domain": "www.facebook.com"
+    },
+    "meta_relevance": {
+      "url": "https://www.facebook.com/business/help/403110480493160",
+      "status": 200,
+      "title": "广告相关度诊断指标简介 | Meta Business 帮助中心",
+      "text_length": 0,
+      "domain": "www.facebook.com"
+    },
+    "meta_learning": {
+      "url": "https://www.facebook.com/business/help/112167992830700",
+      "status": 200,
+      "title": "机器学习阶段简介 | Meta Business 帮助中心",
+      "text_length": 0,
+      "domain": "www.facebook.com"
+    },
+    "tiktok_pixel": {
+      "url": "https://ads.tiktok.com/help/article/create-pixel",
+      "status": 200,
+      "title": "Business Help Center",
+      "text_length": 330,
+      "domain": "ads.tiktok.com"
+    },
+    "tiktok_events_api": {
+      "url": "https://ads.tiktok.com/help/article/events-api",
+      "status": 200,
+      "title": "About Events API | TikTok For Business",
+      "text_length": 2444,
+      "domain": "ads.tiktok.com"
+    },
+    "tiktok_ad_review": {
+      "url": "https://ads.tiktok.com/help/article/ad-review-checklist",
+      "status": 200,
+      "title": "Best Practices for Ad Reviews | TikTok Advertising Policies",
+      "text_length": 1496,
+      "domain": "ads.tiktok.com"
+    },
+    "tiktok_creative": {
+      "url": "https://ads.tiktok.com/help/article/creative-best-practices",
+      "status": 200,
+      "title": "Creative best practices for performance ads",
+      "text_length": 4285,
+      "domain": "ads.tiktok.com"
+    },
+    "web_vitals": {
+      "url": "https://web.dev/articles/vitals",
+      "status": 200,
+      "title": "Web Vitals | Articles | web.dev X GitHub LinkedIn Mastodon Bluesky Homepage",
+      "text_length": 16704,
+      "domain": "web.dev"
+    },
+    "web_lcp": {
+      "url": "https://web.dev/articles/lcp",
+      "status": 200,
+      "title": "Largest Contentful Paint (LCP) | Articles | web.dev X GitHub LinkedIn Mastodon Bluesky Homepage X GitHub Mastodon Bluesky Homepage",
+      "text_length": 19809,
+      "domain": "web.dev"
+    },
+    "web_cls": {
+      "url": "https://web.dev/articles/cls",
+      "status": 200,
+      "title": "Cumulative Layout Shift (CLS) | Articles | web.dev X GitHub Homepage X GitHub LinkedIn Mastodon Bluesky Homepage",
+      "text_length": 19050,
+      "domain": "web.dev"
+    },
+    "web_inp": {
+      "url": "https://web.dev/articles/inp",
+      "status": 200,
+      "title": "Interaction to Next Paint (INP) | web.dev GitHub LinkedIn Homepage X GitHub Mastodon Bluesky Homepage",
+      "text_length": 24524,
+      "domain": "web.dev"
+    }
+  },
+  "cards": 31,
+  "categories": {
+    "投放策略库": 7,
+    "素材与文案库": 5,
+    "技术落地库": 14,
+    "风控与踩坑库": 3,
+    "复盘案例库": 2
+  },
+  "base_chunks": 381,
+  "combined_chunks": 412,
+  "output": "C:\\Users\\kaco_\\Desktop\\工作流\\rag_preprocess\\output\\30tian_chuhai_chunks.jsonl",
+  "public_cards_output": "C:\\Users\\kaco_\\Desktop\\工作流\\rag_preprocess\\output\\public_web_cards.jsonl"
+}

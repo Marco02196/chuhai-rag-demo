@@ -150,6 +150,27 @@ python rag_preprocess\local_retrieval.py query `
 - 常见问题能否命中正确资料
 - 哪些表格/页面还需要继续清洗
 
+## 公开资料定向爬取与清洗
+
+`crawl_public_knowledge.py` 会抓取一批公开官方资料，并清洗成中文诊断知识卡后合并进 `output/30tian_chuhai_chunks.jsonl`。
+
+```powershell
+python rag_preprocess\crawl_public_knowledge.py
+
+python rag_preprocess\local_retrieval.py build `
+  --chunks "C:\Users\kaco_\Desktop\工作流\rag_preprocess\output\30tian_chuhai_chunks.jsonl" `
+  --db "C:\Users\kaco_\Desktop\工作流\rag_preprocess\output\30tian_chuhai.sqlite"
+```
+
+当前第一批公开资料清洗卡：
+
+- 来源：Meta Business Help、TikTok Ads Help、web.dev
+- 输出：`output/public_web_cards.jsonl`
+- 报告：`output/public_web_crawl_report.json`
+- 合并后 chunks：412
+
+注意：这一步不是把网页全文搬进知识库，而是生成“问题 / 场景 / 判断逻辑 / 建议动作 / 风险提醒 / 来源链接”的诊断卡，避免低质量网页内容污染检索结果。
+
 ## 本地问答原型
 
 `rag_answer.py` 会先检索 Top K，再输出一个本地草稿答案和引用来源。
