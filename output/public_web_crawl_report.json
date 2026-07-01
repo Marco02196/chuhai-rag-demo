@@ -85,16 +85,16 @@
       "domain": "web.dev"
     }
   },
-  "cards": 31,
+  "cards": 52,
   "categories": {
-    "投放策略库": 7,
-    "素材与文案库": 5,
-    "技术落地库": 14,
-    "风控与踩坑库": 3,
-    "复盘案例库": 2
+    "投放策略库": 13,
+    "素材与文案库": 9,
+    "技术落地库": 20,
+    "风控与踩坑库": 5,
+    "复盘案例库": 5
   },
   "base_chunks": 381,
-  "combined_chunks": 412,
+  "combined_chunks": 433,
   "output": "C:\\Users\\kaco_\\Desktop\\工作流\\rag_preprocess\\output\\30tian_chuhai_chunks.jsonl",
   "public_cards_output": "C:\\Users\\kaco_\\Desktop\\工作流\\rag_preprocess\\output\\public_web_cards.jsonl"
 }

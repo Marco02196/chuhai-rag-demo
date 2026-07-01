@@ -53,17 +53,18 @@ python -m unittest discover -s rag_preprocess -p "test_*.py"
 
 ## 当前统计
 
-- 总 chunks：381
+- 总 chunks：433
 - Markdown chunks：265
 - CSV row chunks：116
+- 公开诊断卡：52
 
 分类：
 
-- 投放策略库：264
-- 技术落地库：52
-- 风控与踩坑库：35
-- 素材与文案库：19
-- 复盘案例库：8
+- 投放策略库：277
+- 技术落地库：72
+- 风控与踩坑库：40
+- 素材与文案库：28
+- 复盘案例库：13
 - 通用知识库：3
 
 ## 问题诊断地图
@@ -364,3 +365,38 @@ LLM_MODEL=deepseek-chat
 ```
 
 不要把 API Key 写进源码、README、Dockerfile 或 JSON 文件。
+
+## 检索评测集
+
+`eval_questions.py` 用来检查常见口语化投放问题能否命中正确知识片段。它不调用 DeepSeek，只评测本地 SQLite 检索层。
+
+```powershell
+python rag_preprocess\eval_questions.py `
+  --db "C:\Users\kaco_\Desktop\工作流\rag_preprocess\output\30tian_chuhai.sqlite" `
+  --report "C:\Users\kaco_\Desktop\工作流\rag_preprocess\output\eval_report.json" `
+  --limit 5
+```
+
+当前评测覆盖 39 个高频问题，包括 ROI 低、烧钱不出单、CTR 高 CVR 低、素材疲劳、TikTok Hook、Pixel/CAPI、落地页性能、审核拒登和每日复盘。最近一次本地结果：
+
+- 通过：39 / 39
+- 通过率：100%
+- 报告：`output/eval_report.json`
+
+## 当前知识库规模
+
+第二批公开资料清洗卡已合并入主知识库。当前规模：
+
+- 总 chunks：433
+- Markdown chunks：265
+- CSV row chunks：116
+- 公开诊断卡：52
+
+分类分布：
+
+- 投放策略库：277
+- 技术落地库：72
+- 风控与踩坑库：40
+- 素材与文案库：28
+- 复盘案例库：13
+- 通用知识库：3

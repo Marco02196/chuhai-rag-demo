@@ -1,0 +1,1468 @@
+{
+  "db": "C:\\Users\\kaco_\\Desktop\\工作流\\rag_preprocess\\output\\30tian_chuhai.sqlite",
+  "total": 39,
+  "passed": 39,
+  "failed": 0,
+  "pass_rate": 1.0,
+  "failures": [],
+  "cases": [
+    {
+      "id": "ad_roi_stop_or_reduce",
+      "question": "ROI 连续低于 1，是直接关停还是先降预算？",
+      "category_key": "ad_strategy",
+      "passed": true,
+      "matched_keywords": [
+        "ROI",
+        "ROAS",
+        "止损",
+        "加购"
+      ],
+      "expected_any": [
+        "ROI",
+        "ROAS",
+        "止损",
+        "加购"
+      ],
+      "top_results": [
+        {
+          "id": "web_f4ea4669391b0e5d",
+          "title": "ROI 低不要只看结果，要拆点击质量和转化承接",
+          "category": "投放策略库",
+          "score": -42.41966930748792
+        },
+        {
+          "id": "b29dbfec45968fe0",
+          "title": "ROI < 1, 持续 2 天",
+          "category": "投放策略库",
+          "score": -10.391310417448068
+        },
+        {
+          "id": "54c217164f4e040a",
+          "title": "「放量与止损看板」",
+          "category": "投放策略库",
+          "score": -9.779170172791293
+        }
+      ]
+    },
+    {
+      "id": "ad_burning_no_orders",
+      "question": "钱一直烧但是不出单，我该先查哪里？",
+      "category_key": null,
+      "passed": true,
+      "matched_keywords": [
+        "烧钱",
+        "不出单",
+        "CTR",
+        "CVR",
+        "支付",
+        "回传"
+      ],
+      "expected_any": [
+        "烧钱",
+        "不出单",
+        "CTR",
+        "CVR",
+        "支付",
+        "回传"
+      ],
+      "top_results": [
+        {
+          "id": "web_e7cfa501a8b33c89",
+          "title": "低 CPM 不等于便宜流量，先看转化质量",
+          "category": "投放策略库",
+          "score": -21.278082480559522
+        },
+        {
+          "id": "web_f0f11496851677b3",
+          "title": "CTR 高但 CVR 低时先拆相关性与落地承接",
+          "category": "投放策略库",
+          "score": -19.685667220880845
+        },
+        {
+          "id": "web_ab4274533cc4d18a",
+          "title": "口语问题要被翻译成指标问题",
+          "category": "复盘案例库",
+          "score": -18.96995936865631
+        }
+      ]
+    },
+    {
+      "id": "ad_high_ctr_low_cvr",
+      "question": "点击率挺高但没人买，是落地页问题吗？",
+      "category_key": "ad_strategy",
+      "passed": true,
+      "matched_keywords": [
+        "CTR",
+        "CVR",
+        "落地页",
+        "转化"
+      ],
+      "expected_any": [
+        "CTR",
+        "CVR",
+        "落地页",
+        "转化"
+      ],
+      "top_results": [
+        {
+          "id": "web_f0f11496851677b3",
+          "title": "CTR 高但 CVR 低时先拆相关性与落地承接",
+          "category": "投放策略库",
+          "score": -36.212693384978515
+        },
+        {
+          "id": "web_f4ea4669391b0e5d",
+          "title": "ROI 低不要只看结果，要拆点击质量和转化承接",
+          "category": "投放策略库",
+          "score": -15.355690160138405
+        },
+        {
+          "id": "web_ec15345dda5793be",
+          "title": "高频曝光后效果变差，要拆受众饱和与素材疲劳",
+          "category": "投放策略库",
+          "score": -10.746651286826145
+        }
+      ]
+    },
+    {
+      "id": "ad_low_ctr",
+      "question": "广告没人点，是素材不行还是人群不准？",
+      "category_key": "creative_copy",
+      "passed": true,
+      "matched_keywords": [
+        "CTR",
+        "Hook",
+        "素材",
+        "受众"
+      ],
+      "expected_any": [
+        "CTR",
+        "Hook",
+        "素材",
+        "受众"
+      ],
+      "top_results": [
+        {
+          "id": "web_cd84d64c9eb6fc50",
+          "title": "低 CTR 先看素材吸引力与受众匹配",
+          "category": "素材与文案库",
+          "score": -26.266401485347803
+        },
+        {
+          "id": "c16bca81600c3fc7",
+          "title": "FB 爆款五步法文案生成",
+          "category": "素材与文案库",
+          "score": -26.018294113852708
+        },
+        {
+          "id": "web_5c6ef4091dc4efad",
+          "title": "素材测试要拆 Hook、证明点和 CTA",
+          "category": "素材与文案库",
+          "score": -15.69066781572588
+        }
+      ]
+    },
+    {
+      "id": "ad_learning_phase",
+      "question": "新广告跑两天数据忽上忽下，要不要重建？",
+      "category_key": "ad_strategy",
+      "passed": true,
+      "matched_keywords": [
+        "学习期",
+        "预算",
+        "波动"
+      ],
+      "expected_any": [
+        "学习期",
+        "预算",
+        "波动"
+      ],
+      "top_results": [
+        {
+          "id": "web_8dbd71e3f243884b",
+          "title": "学习期内不要频繁大改预算和受众",
+          "category": "投放策略库",
+          "score": -28.547968038656965
+        },
+        {
+          "id": "web_34c44018020cc1ba",
+          "title": "预算调整要避免让系统频繁重新探索",
+          "category": "投放策略库",
+          "score": -19.897055039113297
+        },
+        {
+          "id": "web_a9937ced9dcd5a1b",
+          "title": "新计划前 48 小时要分清观察指标和决策指标",
+          "category": "投放策略库",
+          "score": -10.515888454807035
+        }
+      ]
+    },
+    {
+      "id": "ad_budget_scale",
+      "question": "昨天赚钱了，今天能不能直接翻倍预算？",
+      "category_key": "ad_strategy",
+      "passed": true,
+      "matched_keywords": [
+        "放量",
+        "预算",
+        "CPA",
+        "ROAS"
+      ],
+      "expected_any": [
+        "放量",
+        "预算",
+        "CPA",
+        "ROAS"
+      ],
+      "top_results": [
+        {
+          "id": "web_ae8f00b366a0df13",
+          "title": "放量要看边际成本，而不是只看昨天 ROAS",
+          "category": "投放策略库",
+          "score": -79.52070495162181
+        },
+        {
+          "id": "web_f0f11496851677b3",
+          "title": "CTR 高但 CVR 低时先拆相关性与落地承接",
+          "category": "投放策略库",
+          "score": -14.383846695659894
+        },
+        {
+          "id": "web_ddd17d9b9b03cbcc",
+          "title": "广告诊断先固定变量，避免同时改素材和受众",
+          "category": "投放策略库",
+          "score": -9.067408369048254
+        }
+      ]
+    },
+    {
+      "id": "ad_low_cpm_no_orders",
+      "question": "CPM 很低但是没有订单，还值得继续跑吗？",
+      "category_key": "ad_strategy",
+      "passed": true,
+      "matched_keywords": [
+        "CPM",
+        "不出单",
+        "流量质量",
+        "CVR"
+      ],
+      "expected_any": [
+        "CPM",
+        "不出单",
+        "流量质量",
+        "CVR"
+      ],
+      "top_results": [
+        {
+          "id": "web_e7cfa501a8b33c89",
+          "title": "低 CPM 不等于便宜流量，先看转化质量",
+          "category": "投放策略库",
+          "score": -29.804781491615074
+        },
+        {
+          "id": "web_f0f11496851677b3",
+          "title": "CTR 高但 CVR 低时先拆相关性与落地承接",
+          "category": "投放策略库",
+          "score": -7.460782040030539
+        },
+        {
+          "id": "c1c23d957033dca3",
+          "title": "2026-05-13养号 D23：大促爆发：阶梯式加仓与“激进 Hook”收割协议 > 🚀 1. 大促加仓决策矩阵 (Scaling Matrix) > **A. 纵向加仓 (Vertical Scaling)**",
+          "category": "投放策略库",
+          "score": -7.042737793366228
+        }
+      ]
+    },
+    {
+      "id": "ad_frequency_fatigue",
+      "question": "频次上来之后转化掉了怎么办？",
+      "category_key": "ad_strategy",
+      "passed": true,
+      "matched_keywords": [
+        "频次",
+        "素材疲劳",
+        "受众",
+        "CTR"
+      ],
+      "expected_any": [
+        "频次",
+        "素材疲劳",
+        "受众",
+        "CTR"
+      ],
+      "top_results": [
+        {
+          "id": "web_ec15345dda5793be",
+          "title": "高频曝光后效果变差，要拆受众饱和与素材疲劳",
+          "category": "投放策略库",
+          "score": -64.03730129897227
+        },
+        {
+          "id": "web_ae8f00b366a0df13",
+          "title": "放量要看边际成本，而不是只看昨天 ROAS",
+          "category": "投放策略库",
+          "score": -11.038045016508601
+        },
+        {
+          "id": "web_dbc9c8b05946c6e4",
+          "title": "再营销要排除已购买和低价值重复触达",
+          "category": "投放策略库",
+          "score": -4.897863519489415
+        }
+      ]
+    },
+    {
+      "id": "ad_retargeting_roi_down",
+      "question": "再营销一直追老用户，ROI 反而越来越差怎么办？",
+      "category_key": "ad_strategy",
+      "passed": true,
+      "matched_keywords": [
+        "再营销",
+        "已购买",
+        "频次",
+        "增量"
+      ],
+      "expected_any": [
+        "再营销",
+        "已购买",
+        "频次",
+        "增量"
+      ],
+      "top_results": [
+        {
+          "id": "web_dbc9c8b05946c6e4",
+          "title": "再营销要排除已购买和低价值重复触达",
+          "category": "投放策略库",
+          "score": -35.19343433287834
+        },
+        {
+          "id": "web_ec15345dda5793be",
+          "title": "高频曝光后效果变差，要拆受众饱和与素材疲劳",
+          "category": "投放策略库",
+          "score": -15.46968832509268
+        },
+        {
+          "id": "686782c01541af35",
+          "title": "再营销 - 访问过网页但未连接钱包的人",
+          "category": "投放策略库",
+          "score": -14.129135253344487
+        }
+      ]
+    },
+    {
+      "id": "ad_audience_overlap",
+      "question": "多个广告组是不是在抢同一批人？",
+      "category_key": "ad_strategy",
+      "passed": true,
+      "matched_keywords": [
+        "受众重叠",
+        "广告组",
+        "排除"
+      ],
+      "expected_any": [
+        "受众重叠",
+        "广告组",
+        "排除"
+      ],
+      "top_results": [
+        {
+          "id": "web_4e10426b0ba53361",
+          "title": "受众重叠会让测试结果失真",
+          "category": "投放策略库",
+          "score": -42.44445449733928
+        },
+        {
+          "id": "2966f317f032d5ef",
+          "title": "2026-05-9养号 D19： 品牌资产化",
+          "category": "投放策略库",
+          "score": -18.11966426466252
+        },
+        {
+          "id": "1169625c086e17a4",
+          "title": "「情绪曲线」",
+          "category": "投放策略库",
+          "score": -17.777799623100723
+        }
+      ]
+    },
+    {
+      "id": "creative_tiktok_hook",
+      "question": "TikTok 视频前三秒留不住人，怎么改？",
+      "category_key": "creative_copy",
+      "passed": true,
+      "matched_keywords": [
+        "TikTok",
+        "Hook",
+        "前三秒"
+      ],
+      "expected_any": [
+        "TikTok",
+        "Hook",
+        "前三秒"
+      ],
+      "top_results": [
+        {
+          "id": "web_7f1232d61cc4cac6",
+          "title": "TikTok 创意要把卖点前置到开头几秒",
+          "category": "素材与文案库",
+          "score": -58.504692248475536
+        },
+        {
+          "id": "web_5c6ef4091dc4efad",
+          "title": "素材测试要拆 Hook、证明点和 CTA",
+          "category": "素材与文案库",
+          "score": -9.119614742318703
+        },
+        {
+          "id": "web_833ce0da4bf2948d",
+          "title": "爆款素材要拆成可复制变量，而不是只复制视频",
+          "category": "素材与文案库",
+          "score": -8.797545604889484
+        }
+      ]
+    },
+    {
+      "id": "creative_fatigue",
+      "question": "素材跑几天后掉量掉转化，是不是疲劳了？",
+      "category_key": "creative_copy",
+      "passed": true,
+      "matched_keywords": [
+        "素材疲劳",
+        "频次",
+        "CTR",
+        "CPA"
+      ],
+      "expected_any": [
+        "素材疲劳",
+        "频次",
+        "CTR",
+        "CPA"
+      ],
+      "top_results": [
+        {
+          "id": "web_f9250ef8d23203c4",
+          "title": "TikTok 素材疲劳优先看前段吸引力和重复曝光",
+          "category": "素材与文案库",
+          "score": -69.87499027008407
+        },
+        {
+          "id": "web_51fb33d61f22d184",
+          "title": "素材日历要按假设排，而不是按拍摄日期排",
+          "category": "素材与文案库",
+          "score": -4.797959871225128
+        },
+        {
+          "id": "web_cd84d64c9eb6fc50",
+          "title": "低 CTR 先看素材吸引力与受众匹配",
+          "category": "素材与文案库",
+          "score": -2.1750578951119706
+        }
+      ]
+    },
+    {
+      "id": "creative_copy_flat",
+      "question": "广告文案很平，怎么写得更能卖？",
+      "category_key": "creative_copy",
+      "passed": true,
+      "matched_keywords": [
+        "文案",
+        "卖点",
+        "结果",
+        "CTA"
+      ],
+      "expected_any": [
+        "文案",
+        "卖点",
+        "结果",
+        "CTA"
+      ],
+      "top_results": [
+        {
+          "id": "web_7e3d3371f9880231",
+          "title": "文案先讲具体结果，再讲产品功能",
+          "category": "素材与文案库",
+          "score": -62.06727351640623
+        },
+        {
+          "id": "web_7f1232d61cc4cac6",
+          "title": "TikTok 创意要把卖点前置到开头几秒",
+          "category": "素材与文案库",
+          "score": -4.802551762111804
+        },
+        {
+          "id": "web_5c6ef4091dc4efad",
+          "title": "素材测试要拆 Hook、证明点和 CTA",
+          "category": "素材与文案库",
+          "score": -3.9385808472381143
+        }
+      ]
+    },
+    {
+      "id": "creative_ugc_conversion",
+      "question": "UGC 很真实但转化差，怎么优化？",
+      "category_key": "creative_copy",
+      "passed": true,
+      "matched_keywords": [
+        "UGC",
+        "真实",
+        "转化",
+        "CTA"
+      ],
+      "expected_any": [
+        "UGC",
+        "真实",
+        "转化",
+        "CTA"
+      ],
+      "top_results": [
+        {
+          "id": "web_17cbb99e04b9c937",
+          "title": "UGC 素材要保留真实感但不能牺牲信息清晰度",
+          "category": "素材与文案库",
+          "score": -53.10957929069869
+        },
+        {
+          "id": "web_7e3d3371f9880231",
+          "title": "文案先讲具体结果，再讲产品功能",
+          "category": "素材与文案库",
+          "score": -4.366494952003328
+        },
+        {
+          "id": "b22f040e81e35c14",
+          "title": "「万能 Prompt 库」",
+          "category": "素材与文案库",
+          "score": -4.048016194104038
+        }
+      ]
+    },
+    {
+      "id": "creative_next_ideas",
+      "question": "不知道下一批素材拍什么，怎么找选题？",
+      "category_key": "creative_copy",
+      "passed": true,
+      "matched_keywords": [
+        "评论区",
+        "选题",
+        "购买阻力"
+      ],
+      "expected_any": [
+        "评论区",
+        "选题",
+        "购买阻力"
+      ],
+      "top_results": [
+        {
+          "id": "web_33668123b7a644fa",
+          "title": "素材评论区是低成本选题库",
+          "category": "素材与文案库",
+          "score": -68.24591939416989
+        },
+        {
+          "id": "web_51fb33d61f22d184",
+          "title": "素材日历要按假设排，而不是按拍摄日期排",
+          "category": "素材与文案库",
+          "score": -20.598282104163648
+        },
+        {
+          "id": "web_7e3d3371f9880231",
+          "title": "文案先讲具体结果，再讲产品功能",
+          "category": "素材与文案库",
+          "score": -13.821680196673402
+        }
+      ]
+    },
+    {
+      "id": "creative_duplicate_winner",
+      "question": "有条素材爆了，怎么复制下一条爆款？",
+      "category_key": "creative_copy",
+      "passed": true,
+      "matched_keywords": [
+        "爆款",
+        "Hook",
+        "变量",
+        "CTA"
+      ],
+      "expected_any": [
+        "爆款",
+        "Hook",
+        "变量",
+        "CTA"
+      ],
+      "top_results": [
+        {
+          "id": "web_833ce0da4bf2948d",
+          "title": "爆款素材要拆成可复制变量，而不是只复制视频",
+          "category": "素材与文案库",
+          "score": -75.6105026959016
+        },
+        {
+          "id": "c16bca81600c3fc7",
+          "title": "FB 爆款五步法文案生成",
+          "category": "素材与文案库",
+          "score": -6.601370399490733
+        },
+        {
+          "id": "web_f9250ef8d23203c4",
+          "title": "TikTok 素材疲劳优先看前段吸引力和重复曝光",
+          "category": "素材与文案库",
+          "score": -5.702284063911706
+        }
+      ]
+    },
+    {
+      "id": "creative_calendar",
+      "question": "素材更新很勤但没有方法论，怎么排测试？",
+      "category_key": "creative_copy",
+      "passed": true,
+      "matched_keywords": [
+        "素材日历",
+        "测试假设",
+        "复盘"
+      ],
+      "expected_any": [
+        "素材日历",
+        "测试假设",
+        "复盘"
+      ],
+      "top_results": [
+        {
+          "id": "web_51fb33d61f22d184",
+          "title": "素材日历要按假设排，而不是按拍摄日期排",
+          "category": "素材与文案库",
+          "score": -36.079526194587665
+        },
+        {
+          "id": "web_5c6ef4091dc4efad",
+          "title": "素材测试要拆 Hook、证明点和 CTA",
+          "category": "素材与文案库",
+          "score": -2.370652283389424
+        },
+        {
+          "id": "web_7f1232d61cc4cac6",
+          "title": "TikTok 创意要把卖点前置到开头几秒",
+          "category": "素材与文案库",
+          "score": -2.3354282930449957
+        }
+      ]
+    },
+    {
+      "id": "tech_pixel_bad_data",
+      "question": "CPA 和 ROAS 看着不准，先检查什么？",
+      "category_key": "tech_execution",
+      "passed": true,
+      "matched_keywords": [
+        "Pixel",
+        "事件",
+        "Purchase",
+        "回传"
+      ],
+      "expected_any": [
+        "Pixel",
+        "事件",
+        "Purchase",
+        "回传"
+      ],
+      "top_results": [
+        {
+          "id": "web_4e70d53764310577",
+          "title": "Pixel 异常会让投放诊断失真",
+          "category": "技术落地库",
+          "score": -21.184973885861975
+        },
+        {
+          "id": "web_ed2af6070bd062e3",
+          "title": "CAPI 用来补强浏览器事件丢失，不是替代所有前端检查",
+          "category": "技术落地库",
+          "score": -9.953968319428377
+        },
+        {
+          "id": "web_c5fe960c807e30ed",
+          "title": "支付和表单交互慢要优先于普通动画优化",
+          "category": "技术落地库",
+          "score": -9.55603356017933
+        }
+      ]
+    },
+    {
+      "id": "tech_capi_dedupe",
+      "question": "Pixel 和 CAPI 都开了，为什么转化数翻倍？",
+      "category_key": "tech_execution",
+      "passed": true,
+      "matched_keywords": [
+        "event_id",
+        "去重",
+        "Pixel",
+        "CAPI"
+      ],
+      "expected_any": [
+        "event_id",
+        "去重",
+        "Pixel",
+        "CAPI"
+      ],
+      "top_results": [
+        {
+          "id": "web_4006938ac0156f4a",
+          "title": "事件去重是前后端双回传的核心",
+          "category": "技术落地库",
+          "score": -42.01793409227174
+        },
+        {
+          "id": "a988a19ec1104496",
+          "title": "像素清洗与 CAPI 降噪：算法的“脑黄金”协议 > **2. 后端：CAPI 纯净度防御 (The Backend Firewall)**",
+          "category": "技术落地库",
+          "score": -22.758516981494825
+        },
+        {
+          "id": "web_3f969bd5f50b49c2",
+          "title": "UTM 和广告命名要服务复盘，不只是方便投放",
+          "category": "技术落地库",
+          "score": -22.466621335264197
+        }
+      ]
+    },
+    {
+      "id": "tech_capi_match",
+      "question": "CAPI 有回传但匹配质量低，怎么办？",
+      "category_key": "tech_execution",
+      "passed": true,
+      "matched_keywords": [
+        "CAPI",
+        "匹配质量",
+        "用户参数"
+      ],
+      "expected_any": [
+        "CAPI",
+        "匹配质量",
+        "用户参数"
+      ],
+      "top_results": [
+        {
+          "id": "web_15e8164aad0d5da3",
+          "title": "事件匹配质量下降时，先查用户参数完整性",
+          "category": "技术落地库",
+          "score": -41.4573768011354
+        },
+        {
+          "id": "web_3f969bd5f50b49c2",
+          "title": "UTM 和广告命名要服务复盘，不只是方便投放",
+          "category": "技术落地库",
+          "score": -24.596360875117423
+        },
+        {
+          "id": "a988a19ec1104496",
+          "title": "像素清洗与 CAPI 降噪：算法的“脑黄金”协议 > **2. 后端：CAPI 纯净度防御 (The Backend Firewall)**",
+          "category": "技术落地库",
+          "score": -22.758516981494825
+        }
+      ]
+    },
+    {
+      "id": "tech_purchase_value",
+      "question": "订单数对得上，但 ROAS 金额不对怎么办？",
+      "category_key": "tech_execution",
+      "passed": true,
+      "matched_keywords": [
+        "Purchase",
+        "value",
+        "currency",
+        "ROAS"
+      ],
+      "expected_any": [
+        "Purchase",
+        "value",
+        "currency",
+        "ROAS"
+      ],
+      "top_results": [
+        {
+          "id": "web_a4de34ea59e5b5c8",
+          "title": "Purchase 金额和币种错误会直接误导 ROAS",
+          "category": "技术落地库",
+          "score": -54.22617141653264
+        },
+        {
+          "id": "web_85a1a79a3e3a69d7",
+          "title": "TikTok Pixel 先保证基础事件链路完整",
+          "category": "技术落地库",
+          "score": -11.807955746424023
+        },
+        {
+          "id": "web_ed2af6070bd062e3",
+          "title": "CAPI 用来补强浏览器事件丢失，不是替代所有前端检查",
+          "category": "技术落地库",
+          "score": -6.828711313402019
+        }
+      ]
+    },
+    {
+      "id": "tech_tiktok_events_api",
+      "question": "TikTok 数据回传不稳定，什么时候接 Events API？",
+      "category_key": "tech_execution",
+      "passed": true,
+      "matched_keywords": [
+        "TikTok",
+        "Events API",
+        "服务端"
+      ],
+      "expected_any": [
+        "TikTok",
+        "Events API",
+        "服务端"
+      ],
+      "top_results": [
+        {
+          "id": "web_58485e466fd8f1f7",
+          "title": "Events API 适合补齐服务端转化信号",
+          "category": "技术落地库",
+          "score": -68.80320453942227
+        },
+        {
+          "id": "web_92faef10271fc96b",
+          "title": "服务端回传要关注延迟和事件顺序",
+          "category": "技术落地库",
+          "score": -28.642860512341045
+        },
+        {
+          "id": "web_18d55ea5dbed9bcc",
+          "title": "支付成功页丢事件，要把购买事件放到后端确认",
+          "category": "技术落地库",
+          "score": -21.365693702564414
+        }
+      ]
+    },
+    {
+      "id": "tech_checkout_drop",
+      "question": "加购很多但付款少，是广告问题还是网站问题？",
+      "category_key": "tech_execution",
+      "passed": true,
+      "matched_keywords": [
+        "加购",
+        "购买",
+        "支付",
+        "Checkout"
+      ],
+      "expected_any": [
+        "加购",
+        "购买",
+        "支付",
+        "Checkout"
+      ],
+      "top_results": [
+        {
+          "id": "web_f9418dcee435d5f6",
+          "title": "加购很多但购买少，要优先查支付和信任链路",
+          "category": "技术落地库",
+          "score": -64.57074924261529
+        },
+        {
+          "id": "web_c5fe960c807e30ed",
+          "title": "支付和表单交互慢要优先于普通动画优化",
+          "category": "技术落地库",
+          "score": -8.094627619699494
+        },
+        {
+          "id": "web_7f52be3f4b5427b7",
+          "title": "优惠条和弹窗不能破坏关键操作区",
+          "category": "技术落地库",
+          "score": -6.7517908322124045
+        }
+      ]
+    },
+    {
+      "id": "tech_success_page_missing",
+      "question": "用户付款成功了，广告后台却少记购买，为什么？",
+      "category_key": "tech_execution",
+      "passed": true,
+      "matched_keywords": [
+        "支付成功页",
+        "Purchase",
+        "后端"
+      ],
+      "expected_any": [
+        "支付成功页",
+        "Purchase",
+        "后端"
+      ],
+      "top_results": [
+        {
+          "id": "web_18d55ea5dbed9bcc",
+          "title": "支付成功页丢事件，要把购买事件放到后端确认",
+          "category": "技术落地库",
+          "score": -61.02064192062066
+        },
+        {
+          "id": "web_a4de34ea59e5b5c8",
+          "title": "Purchase 金额和币种错误会直接误导 ROAS",
+          "category": "技术落地库",
+          "score": -13.606457924021406
+        },
+        {
+          "id": "web_4e70d53764310577",
+          "title": "Pixel 异常会让投放诊断失真",
+          "category": "技术落地库",
+          "score": -13.148275755689989
+        }
+      ]
+    },
+    {
+      "id": "tech_utm_naming",
+      "question": "广告后台和 GA 数据对不上，复盘怎么做清楚？",
+      "category_key": "tech_execution",
+      "passed": true,
+      "matched_keywords": [
+        "UTM",
+        "命名",
+        "GA",
+        "复盘"
+      ],
+      "expected_any": [
+        "UTM",
+        "命名",
+        "GA",
+        "复盘"
+      ],
+      "top_results": [
+        {
+          "id": "web_3f969bd5f50b49c2",
+          "title": "UTM 和广告命名要服务复盘，不只是方便投放",
+          "category": "技术落地库",
+          "score": -61.65399204308829
+        },
+        {
+          "id": "web_4e70d53764310577",
+          "title": "Pixel 异常会让投放诊断失真",
+          "category": "技术落地库",
+          "score": -39.5600007910976
+        },
+        {
+          "id": "web_a4de34ea59e5b5c8",
+          "title": "Purchase 金额和币种错误会直接误导 ROAS",
+          "category": "技术落地库",
+          "score": -11.457419146871164
+        }
+      ]
+    },
+    {
+      "id": "landing_mobile_first_screen",
+      "question": "手机端落地页转化差，首屏先改什么？",
+      "category_key": "tech_execution",
+      "passed": true,
+      "matched_keywords": [
+        "移动端",
+        "首屏",
+        "CTA"
+      ],
+      "expected_any": [
+        "移动端",
+        "首屏",
+        "CTA"
+      ],
+      "top_results": [
+        {
+          "id": "web_87dad85c808b83d1",
+          "title": "移动端首屏要优先让用户看见商品、价格和行动按钮",
+          "category": "技术落地库",
+          "score": -28.92653365799134
+        },
+        {
+          "id": "web_da371f7212db794c",
+          "title": "广告落地页首屏图不能只追求高清",
+          "category": "技术落地库",
+          "score": -9.718263923554304
+        },
+        {
+          "id": "web_c5fe960c807e30ed",
+          "title": "支付和表单交互慢要优先于普通动画优化",
+          "category": "技术落地库",
+          "score": -9.49061063092567
+        }
+      ]
+    },
+    {
+      "id": "landing_slow_lcp",
+      "question": "落地页打开慢，先修哪里？",
+      "category_key": "tech_execution",
+      "passed": true,
+      "matched_keywords": [
+        "LCP",
+        "首屏",
+        "图片",
+        "CDN"
+      ],
+      "expected_any": [
+        "LCP",
+        "首屏",
+        "图片",
+        "CDN"
+      ],
+      "top_results": [
+        {
+          "id": "web_d54ae1eea72108e9",
+          "title": "LCP 差优先处理首屏最大内容",
+          "category": "技术落地库",
+          "score": -47.44547397075626
+        },
+        {
+          "id": "web_87dad85c808b83d1",
+          "title": "移动端首屏要优先让用户看见商品、价格和行动按钮",
+          "category": "技术落地库",
+          "score": -7.693586102641826
+        },
+        {
+          "id": "web_ec765a18f541f42b",
+          "title": "INP 差说明页面交互响应慢",
+          "category": "技术落地库",
+          "score": -6.5150576768306845
+        }
+      ]
+    },
+    {
+      "id": "landing_cls_jump",
+      "question": "页面跳动会不会影响支付和表单转化？",
+      "category_key": "tech_execution",
+      "passed": true,
+      "matched_keywords": [
+        "CLS",
+        "视觉稳定",
+        "支付",
+        "表单"
+      ],
+      "expected_any": [
+        "CLS",
+        "视觉稳定",
+        "支付",
+        "表单"
+      ],
+      "top_results": [
+        {
+          "id": "web_0d7985f811e7dc7f",
+          "title": "CLS 高会破坏支付和表单体验",
+          "category": "技术落地库",
+          "score": -43.01210752523654
+        },
+        {
+          "id": "web_c5fe960c807e30ed",
+          "title": "支付和表单交互慢要优先于普通动画优化",
+          "category": "技术落地库",
+          "score": -27.607998690628136
+        },
+        {
+          "id": "web_7f52be3f4b5427b7",
+          "title": "优惠条和弹窗不能破坏关键操作区",
+          "category": "技术落地库",
+          "score": -24.744003233583708
+        }
+      ]
+    },
+    {
+      "id": "landing_inp_slow",
+      "question": "用户点按钮没反应，技术上怎么排查？",
+      "category_key": "tech_execution",
+      "passed": true,
+      "matched_keywords": [
+        "INP",
+        "交互",
+        "JS",
+        "支付"
+      ],
+      "expected_any": [
+        "INP",
+        "交互",
+        "JS",
+        "支付"
+      ],
+      "top_results": [
+        {
+          "id": "web_ec765a18f541f42b",
+          "title": "INP 差说明页面交互响应慢",
+          "category": "技术落地库",
+          "score": -52.03998405789561
+        },
+        {
+          "id": "web_92faef10271fc96b",
+          "title": "服务端回传要关注延迟和事件顺序",
+          "category": "技术落地库",
+          "score": -18.967820672680332
+        },
+        {
+          "id": "web_15e8164aad0d5da3",
+          "title": "事件匹配质量下降时，先查用户参数完整性",
+          "category": "技术落地库",
+          "score": -17.86162403577064
+        }
+      ]
+    },
+    {
+      "id": "landing_plugins",
+      "question": "页面装了很多追踪和客服插件，会不会拖慢转化？",
+      "category_key": "tech_execution",
+      "passed": true,
+      "matched_keywords": [
+        "第三方脚本",
+        "LCP",
+        "INP",
+        "插件"
+      ],
+      "expected_any": [
+        "第三方脚本",
+        "LCP",
+        "INP",
+        "插件"
+      ],
+      "top_results": [
+        {
+          "id": "web_efae3846313a8ac6",
+          "title": "第三方脚本过多会拖慢投放页首屏",
+          "category": "技术落地库",
+          "score": -76.00459708551742
+        },
+        {
+          "id": "web_7f52be3f4b5427b7",
+          "title": "优惠条和弹窗不能破坏关键操作区",
+          "category": "技术落地库",
+          "score": -13.339424825119407
+        },
+        {
+          "id": "dee90329098d2e94",
+          "title": "2026-04-29养号 D14：CAPI 后端防线：全链路归因与数据主权 > 一、 为什么必须部署 CAPI？ (The Necessity)",
+          "category": "技术落地库",
+          "score": -4.313762839474121
+        }
+      ]
+    },
+    {
+      "id": "risk_rejected",
+      "question": "广告被拒，是素材违规还是落地页问题？",
+      "category_key": "risk_playbook",
+      "passed": true,
+      "matched_keywords": [
+        "审核",
+        "被拒",
+        "落地页",
+        "素材"
+      ],
+      "expected_any": [
+        "审核",
+        "被拒",
+        "落地页",
+        "素材"
+      ],
+      "top_results": [
+        {
+          "id": "web_2718410edd257a27",
+          "title": "广告审核问题先拆素材、落地页和商品承诺",
+          "category": "风控与踩坑库",
+          "score": -76.6998782493691
+        },
+        {
+          "id": "web_a321a434aec7f360",
+          "title": "被拒素材先改风险点，不要原样反复提交",
+          "category": "风控与踩坑库",
+          "score": -27.065512918114024
+        },
+        {
+          "id": "web_cacadf98748f3ce1",
+          "title": "素材、落地页、商品三者不一致会放大审核风险",
+          "category": "风控与踩坑库",
+          "score": -18.058110623867915
+        }
+      ]
+    },
+    {
+      "id": "risk_before_submit",
+      "question": "广告上线前怎么减少被拒概率？",
+      "category_key": "risk_playbook",
+      "passed": true,
+      "matched_keywords": [
+        "审核",
+        "自检",
+        "素材",
+        "落地页"
+      ],
+      "expected_any": [
+        "审核",
+        "自检",
+        "素材",
+        "落地页"
+      ],
+      "top_results": [
+        {
+          "id": "web_62102932f9668be7",
+          "title": "审核前先做素材风险自检",
+          "category": "风控与踩坑库",
+          "score": -84.94758171745359
+        },
+        {
+          "id": "92e9ddf14b954ae0",
+          "title": "D27 | 闭环诊断与风控自动化：构建“利润护城河” > ⚡ 3. 前端性能硬预算 (Performance Budget)",
+          "category": "风控与踩坑库",
+          "score": -14.94521371072178
+        },
+        {
+          "id": "web_2718410edd257a27",
+          "title": "广告审核问题先拆素材、落地页和商品承诺",
+          "category": "风控与踩坑库",
+          "score": -5.872167019845208
+        }
+      ]
+    },
+    {
+      "id": "risk_appeal_or_rebuild",
+      "question": "广告被拒后应该申诉还是重做？",
+      "category_key": "risk_playbook",
+      "passed": true,
+      "matched_keywords": [
+        "拒审",
+        "申诉",
+        "修改"
+      ],
+      "expected_any": [
+        "拒审",
+        "申诉",
+        "修改"
+      ],
+      "top_results": [
+        {
+          "id": "web_a321a434aec7f360",
+          "title": "被拒素材先改风险点，不要原样反复提交",
+          "category": "风控与踩坑库",
+          "score": -58.73717868097209
+        },
+        {
+          "id": "web_2718410edd257a27",
+          "title": "广告审核问题先拆素材、落地页和商品承诺",
+          "category": "风控与踩坑库",
+          "score": -19.49429597190442
+        },
+        {
+          "id": "web_62102932f9668be7",
+          "title": "审核前先做素材风险自检",
+          "category": "风控与踩坑库",
+          "score": -13.241962550783919
+        }
+      ]
+    },
+    {
+      "id": "risk_consistency",
+      "question": "没写违规词为什么还是过不了审？",
+      "category_key": "risk_playbook",
+      "passed": true,
+      "matched_keywords": [
+        "审核",
+        "一致性",
+        "商品承诺"
+      ],
+      "expected_any": [
+        "审核",
+        "一致性",
+        "商品承诺"
+      ],
+      "top_results": [
+        {
+          "id": "web_cacadf98748f3ce1",
+          "title": "素材、落地页、商品三者不一致会放大审核风险",
+          "category": "风控与踩坑库",
+          "score": -72.53278767022557
+        },
+        {
+          "id": "web_2718410edd257a27",
+          "title": "广告审核问题先拆素材、落地页和商品承诺",
+          "category": "风控与踩坑库",
+          "score": -5.588794399686851
+        },
+        {
+          "id": "web_a321a434aec7f360",
+          "title": "被拒素材先改风险点，不要原样反复提交",
+          "category": "风控与踩坑库",
+          "score": -5.453457479252878
+        }
+      ]
+    },
+    {
+      "id": "risk_sensitive_category",
+      "question": "保健美容金融这类敏感品怎么投更稳？",
+      "category_key": "risk_playbook",
+      "passed": true,
+      "matched_keywords": [
+        "敏感品类",
+        "审核",
+        "资质"
+      ],
+      "expected_any": [
+        "敏感品类",
+        "审核",
+        "资质"
+      ],
+      "top_results": [
+        {
+          "id": "web_68a1681ba2fdb65d",
+          "title": "敏感品类先做保守版本测试，再逐步放开表达",
+          "category": "风控与踩坑库",
+          "score": -70.37538104875797
+        },
+        {
+          "id": "web_62102932f9668be7",
+          "title": "审核前先做素材风险自检",
+          "category": "风控与踩坑库",
+          "score": -16.08747420717507
+        },
+        {
+          "id": "web_2718410edd257a27",
+          "title": "广告审核问题先拆素材、落地页和商品承诺",
+          "category": "风控与踩坑库",
+          "score": -3.152952046713912
+        }
+      ]
+    },
+    {
+      "id": "review_daily_first",
+      "question": "每天复盘第一步应该看什么？",
+      "category_key": "review_cases",
+      "passed": true,
+      "matched_keywords": [
+        "日复盘",
+        "数据可信",
+        "事件健康"
+      ],
+      "expected_any": [
+        "日复盘",
+        "数据可信",
+        "事件健康"
+      ],
+      "top_results": [
+        {
+          "id": "web_64cc8b2ac4887298",
+          "title": "日复盘先问数据可信不可信，再问广告好不好",
+          "category": "复盘案例库",
+          "score": -74.32286645444097
+        },
+        {
+          "id": "web_904e7fadfdacb663",
+          "title": "页面性能问题要和广告指标同表复盘",
+          "category": "复盘案例库",
+          "score": -9.711755946983377
+        },
+        {
+          "id": "web_0aaa81ca813d290a",
+          "title": "数据回传质量要进入每日投放巡检",
+          "category": "复盘案例库",
+          "score": -4.841466342804214
+        }
+      ]
+    },
+    {
+      "id": "review_performance_table",
+      "question": "怎么判断亏损是不是落地页性能导致的？",
+      "category_key": "review_cases",
+      "passed": true,
+      "matched_keywords": [
+        "复盘",
+        "页面性能",
+        "CVR",
+        "LCP"
+      ],
+      "expected_any": [
+        "复盘",
+        "页面性能",
+        "CVR",
+        "LCP"
+      ],
+      "top_results": [
+        {
+          "id": "web_904e7fadfdacb663",
+          "title": "页面性能问题要和广告指标同表复盘",
+          "category": "复盘案例库",
+          "score": -63.67586732478797
+        },
+        {
+          "id": "web_ab4274533cc4d18a",
+          "title": "口语问题要被翻译成指标问题",
+          "category": "复盘案例库",
+          "score": -12.609676534488754
+        },
+        {
+          "id": "web_64cc8b2ac4887298",
+          "title": "日复盘先问数据可信不可信，再问广告好不好",
+          "category": "复盘案例库",
+          "score": -8.80294312430999
+        }
+      ]
+    },
+    {
+      "id": "review_change_timeline",
+      "question": "昨天改了页面后广告数据突然变差，怎么定位？",
+      "category_key": "review_cases",
+      "passed": true,
+      "matched_keywords": [
+        "时间线",
+        "变更日志",
+        "页面发布"
+      ],
+      "expected_any": [
+        "时间线",
+        "变更日志",
+        "页面发布"
+      ],
+      "top_results": [
+        {
+          "id": "web_aa3333ff54595bb2",
+          "title": "复盘要把投放动作、页面发布和技术变更放在同一时间线",
+          "category": "复盘案例库",
+          "score": -66.00357664814098
+        },
+        {
+          "id": "web_904e7fadfdacb663",
+          "title": "页面性能问题要和广告指标同表复盘",
+          "category": "复盘案例库",
+          "score": -3.233894858617624
+        },
+        {
+          "id": "web_ab4274533cc4d18a",
+          "title": "口语问题要被翻译成指标问题",
+          "category": "复盘案例库",
+          "score": -3.215224763173833
+        }
+      ]
+    },
+    {
+      "id": "review_boss_question",
+      "question": "老板问钱怎么一直烧没单，我怎么拆成指标？",
+      "category_key": "review_cases",
+      "passed": true,
+      "matched_keywords": [
+        "烧钱没单",
+        "指标拆解",
+        "CTR",
+        "CVR"
+      ],
+      "expected_any": [
+        "烧钱没单",
+        "指标拆解",
+        "CTR",
+        "CVR"
+      ],
+      "top_results": [
+        {
+          "id": "web_ab4274533cc4d18a",
+          "title": "口语问题要被翻译成指标问题",
+          "category": "复盘案例库",
+          "score": -41.79891016037136
+        },
+        {
+          "id": "web_64cc8b2ac4887298",
+          "title": "日复盘先问数据可信不可信，再问广告好不好",
+          "category": "复盘案例库",
+          "score": -14.590695575430944
+        },
+        {
+          "id": "web_904e7fadfdacb663",
+          "title": "页面性能问题要和广告指标同表复盘",
+          "category": "复盘案例库",
+          "score": -8.277256549554242
+        }
+      ]
+    }
+  ]
+}
