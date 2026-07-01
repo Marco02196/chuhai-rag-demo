@@ -362,9 +362,35 @@ DEEPSEEK_API_KEY
 APP_API_KEY
 LLM_BASE_URL=https://api.deepseek.com
 LLM_MODEL=deepseek-chat
+RAG_EVENT_LOG_PATH=output/interaction_events.jsonl
 ```
 
 不要把 API Key 写进源码、README、Dockerfile 或 JSON 文件。
+
+## 真实问题与反馈收集
+
+Web 服务现在会把每次 `/api/ask` 的提问和命中情况追加写入 JSONL 日志，默认位置：
+
+```text
+output/interaction_events.jsonl
+```
+
+每条提问事件会记录：
+
+- 用户问题
+- 分类、深度、limit
+- 回答耗时
+- 命中来源数量、来源标题、来源分类
+- 回答长度
+
+用户点击 👍 / 👎 时，会通过 `/api/feedback` 追加反馈事件，并用 `request_id` 和对应提问关联。日志不会记录访问码，也不会记录 DeepSeek API Key。
+
+后续每周可以直接分析这个文件，找出：
+
+- 高频真实问法
+- 没命中来源的问题
+- 点踩较多的回答
+- 需要补充的知识卡和口语扩展词
 
 ## 检索评测集
 

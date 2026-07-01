@@ -1,9 +1,10 @@
 import unittest
+import json
 
 from tempfile import TemporaryDirectory
 from pathlib import Path
 
-from web_service import check_auth, check_readiness, handle_ask_payload, render_index_html
+from web_service import check_auth, check_readiness, handle_ask_payload, handle_feedback_payload, render_index_html
 
 
 class WebServiceTest(unittest.TestCase):
@@ -38,6 +39,7 @@ class WebServiceTest(unittest.TestCase):
         self.assertIn("投放决策", html)
         self.assertIn("建议深度", html)
         self.assertIn("QUERY_ENDPOINT: '/api/ask'", html)
+        self.assertIn("FEEDBACK_ENDPOINT: '/api/feedback'", html)
         self.assertIn("sessionStorage", html)
         self.assertIn("chatScroll", html)
         self.assertIn("composerInput", html)
@@ -84,8 +86,38 @@ class WebServiceTest(unittest.TestCase):
 
         self.assertEqual(status, 200)
         self.assertEqual(response["answer"], "应该关停。[来源 1]")
+        self.assertIn("request_id", response)
         self.assertEqual(response["sources"][0]["title"], "放量与止损看板")
         self.assertNotIn("contexts", response)
+
+    def test_handle_ask_payload_writes_question_log_without_secrets(self):
+        contexts = [
+            {
+                "source_number": 1,
+                "id": "a",
+                "text": "对应动作：Kill",
+                "metadata": {"title": "放量与止损看板", "category": "投放策略库", "source_path": "x.csv"},
+            }
+        ]
+
+        with TemporaryDirectory() as temp_dir:
+            log_path = Path(temp_dir) / "events.jsonl"
+            response, status = handle_ask_payload(
+                {"question": "ROI 低怎么办", "category_key": "ad_strategy", "limit": 2, "use_llm": False},
+                db_path="kb.sqlite",
+                retriever=lambda **kwargs: contexts,
+                answerer=lambda question, contexts, use_llm: "应该关停。[来源 1]",
+                log_path=log_path,
+            )
+            records = [json.loads(line) for line in log_path.read_text(encoding="utf-8").splitlines()]
+
+        self.assertEqual(status, 200)
+        self.assertEqual(records[0]["event"], "ask")
+        self.assertEqual(records[0]["request_id"], response["request_id"])
+        self.assertEqual(records[0]["question"], "ROI 低怎么办")
+        self.assertEqual(records[0]["source_count"], 1)
+        self.assertNotIn("authorization", records[0])
+        self.assertNotIn("api_key", records[0])
 
     def test_handle_ask_payload_passes_depth_to_answerer(self):
         contexts = [
@@ -132,6 +164,27 @@ class WebServiceTest(unittest.TestCase):
 
         self.assertEqual(status, 200)
         self.assertEqual(response["contexts"][0]["id"], "a")
+
+    def test_handle_feedback_payload_writes_feedback_event(self):
+        with TemporaryDirectory() as temp_dir:
+            log_path = Path(temp_dir) / "events.jsonl"
+            response, status = handle_feedback_payload(
+                {"request_id": "req-1", "feedback": "up", "answer_preview": "不错"},
+                log_path=log_path,
+            )
+            record = json.loads(log_path.read_text(encoding="utf-8").strip())
+
+        self.assertEqual(status, 200)
+        self.assertTrue(response["ok"])
+        self.assertEqual(record["event"], "feedback")
+        self.assertEqual(record["request_id"], "req-1")
+        self.assertEqual(record["feedback"], "up")
+
+    def test_handle_feedback_payload_validates_feedback(self):
+        response, status = handle_feedback_payload({"request_id": "req-1", "feedback": "maybe"}, log_path=None)
+
+        self.assertEqual(status, 400)
+        self.assertIn("feedback", response["error"])
 
     def test_check_readiness_reports_missing_database(self):
         with TemporaryDirectory() as temp_dir:

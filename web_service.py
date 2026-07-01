@@ -6,12 +6,16 @@ import sqlite3
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from threading import Lock
 from typing import Callable
+from uuid import uuid4
 
 from rag_answer import answer_question, retrieve_context
 
 
 DEFAULT_DB_PATH = Path(__file__).parent / "output" / "30tian_chuhai.sqlite"
+DEFAULT_LOG_PATH = Path(__file__).parent / "output" / "interaction_events.jsonl"
+EVENT_LOG_LOCK = Lock()
 
 
 def render_index_html() -> str:
@@ -512,6 +516,7 @@ def render_index_html() -> str:
    ===================================================================== */
 const CONFIG = {
   QUERY_ENDPOINT: '/api/ask',
+  FEEDBACK_ENDPOINT: '/api/feedback',
   COLD_START_THRESHOLD_MS: 3000,
 };
 
@@ -686,8 +691,9 @@ function appendLoadingAnswer(){
   return wrap;
 }
 
-function renderAnswer(container, answerText, sources){
+function renderAnswer(container, answerText, sources, requestId){
   container.classList.remove('loading');
+  container.dataset.requestId = requestId || '';
   const sourcesHtml = sources && sources.length ? `
     <div class="sources">
       <button class="sources-toggle"><span class="chevron">›</span> 查看 ${sources.length} 条引用来源</button>
@@ -721,7 +727,7 @@ function renderAnswer(container, answerText, sources){
     btn.addEventListener('click', () => {
       container.querySelectorAll('.fb-btn').forEach(b => b.classList.remove('picked-up','picked-down'));
       btn.classList.add(btn.dataset.fb === 'up' ? 'picked-up' : 'picked-down');
-      recordFeedback(btn.dataset.fb);
+      recordFeedback(btn.dataset.fb, container.dataset.requestId);
     });
   });
 
@@ -734,11 +740,28 @@ function escapeHtml(str){
   return div.innerHTML;
 }
 
-function recordFeedback(value){
+async function recordFeedback(value, requestId){
   const answerText = state.lastAnswerEl?.querySelector('.answer-text')?.textContent || '';
   const items = JSON.parse(localStorage.getItem('rag_feedback') || '[]');
-  items.push({ value, answerPreview: answerText.slice(0, 240), createdAt: new Date().toISOString() });
+  items.push({ requestId, value, answerPreview: answerText.slice(0, 240), createdAt: new Date().toISOString() });
   localStorage.setItem('rag_feedback', JSON.stringify(items.slice(-50)));
+  if(!requestId || !state.token) return;
+  try{
+    await fetch(CONFIG.FEEDBACK_ENDPOINT, {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+state.token
+      },
+      body: JSON.stringify({
+        request_id: requestId,
+        feedback: value,
+        answer_preview: answerText.slice(0, 240)
+      })
+    });
+  }catch(err){
+    // 本地 localStorage 已经留痕，后端失败不打断用户操作。
+  }
 }
 
 /* ============ 提交问题 ============ */
@@ -791,7 +814,7 @@ async function submitQuestion(){
 
 
     clearTimeout(coldStartTimer);
-    renderAnswer(loadingEl, data.answer, data.sources);
+    renderAnswer(loadingEl, data.answer, data.sources, data.request_id);
   }catch(err){
     clearTimeout(coldStartTimer);
     loadingEl.classList.remove('loading');
@@ -827,6 +850,83 @@ document.getElementById('copyBtn').addEventListener('click', async () => {
 </html>
 
 """
+
+
+def utc_timestamp() -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
+def truncate_text(text: str, max_length: int = 2000) -> str:
+    text = str(text or "").replace("\x00", "").strip()
+    if len(text) <= max_length:
+        return text
+    return f"{text[:max_length]}..."
+
+
+def append_event(log_path: str | Path | None, event: dict) -> None:
+    if not log_path:
+        return
+    path = Path(log_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    record = dict(event)
+    record.setdefault("created_at", utc_timestamp())
+    line = json.dumps(record, ensure_ascii=False, sort_keys=True)
+    with EVENT_LOG_LOCK:
+        with path.open("a", encoding="utf-8") as file:
+            file.write(line + "\n")
+
+
+def ask_event_payload(
+    *,
+    request_id: str,
+    question: str,
+    category_key: str | None,
+    depth: str,
+    limit: int,
+    use_llm: bool,
+    contexts: list[dict],
+    answer: str,
+    elapsed_ms: int,
+) -> dict:
+    return {
+        "event": "ask",
+        "request_id": request_id,
+        "question": truncate_text(question),
+        "category_key": category_key,
+        "depth": depth,
+        "limit": limit,
+        "use_llm": use_llm,
+        "elapsed_ms": elapsed_ms,
+        "answer_length": len(answer or ""),
+        "source_count": len(contexts),
+        "source_titles": [
+            truncate_text(context.get("metadata", {}).get("title", ""), 120)
+            for context in contexts[:5]
+        ],
+        "source_categories": [
+            context.get("metadata", {}).get("category", "")
+            for context in contexts[:5]
+        ],
+    }
+
+
+def handle_feedback_payload(payload: dict, log_path: str | Path | None) -> tuple[dict, int]:
+    request_id = str(payload.get("request_id") or "").strip()
+    feedback = str(payload.get("feedback") or "").strip().lower()
+    if not request_id:
+        return {"error": "request_id is required"}, 400
+    if feedback not in {"up", "down"}:
+        return {"error": "feedback must be up or down"}, 400
+    append_event(
+        log_path,
+        {
+            "event": "feedback",
+            "request_id": request_id,
+            "feedback": feedback,
+            "answer_preview": truncate_text(str(payload.get("answer_preview") or ""), 240),
+        },
+    )
+    return {"ok": True}, 200
 
 
 def normalized_headers(handler: BaseHTTPRequestHandler) -> dict[str, str]:
@@ -872,7 +972,10 @@ def handle_ask_payload(
     db_path: str | Path,
     retriever: Callable[..., list[dict]] = retrieve_context,
     answerer: Callable[..., str] = answer_question,
+    log_path: str | Path | None = None,
 ) -> tuple[dict, int]:
+    started_at = time.perf_counter()
+    request_id = str(payload.get("request_id") or uuid4())
     question = str(payload.get("question") or "").strip()
     if not question:
         return {"error": "question is required"}, 400
@@ -891,10 +994,26 @@ def handle_ask_payload(
         answer = answerer(question, contexts, use_llm=use_llm, depth=depth)
     else:
         answer = answerer(question, contexts, use_llm=use_llm)
+    elapsed_ms = int((time.perf_counter() - started_at) * 1000)
     response = {
+        "request_id": request_id,
         "answer": answer,
         "sources": [source_payload(context) for context in contexts],
     }
+    append_event(
+        log_path,
+        ask_event_payload(
+            request_id=request_id,
+            question=question,
+            category_key=category_key,
+            depth=depth,
+            limit=limit,
+            use_llm=use_llm,
+            contexts=contexts,
+            answer=answer,
+            elapsed_ms=elapsed_ms,
+        ),
+    )
     if bool(payload.get("debug", False)):
         response["contexts"] = contexts
     return response, 200
@@ -930,7 +1049,7 @@ class RAGRequestHandler(BaseHTTPRequestHandler):
         self.send_json({"error": "not found"}, status=404)
 
     def do_POST(self) -> None:
-        if self.path != "/api/ask":
+        if self.path not in {"/api/ask", "/api/feedback"}:
             self.send_json({"error": "not found"}, status=404)
             return
         if not check_auth(normalized_headers(self), getattr(self.server, "api_key", "")):
@@ -939,7 +1058,14 @@ class RAGRequestHandler(BaseHTTPRequestHandler):
         try:
             length = int(self.headers.get("Content-Length", "0"))
             payload = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
-            response, status = handle_ask_payload(payload, db_path=getattr(self.server, "db_path"))
+            if self.path == "/api/feedback":
+                response, status = handle_feedback_payload(payload, log_path=getattr(self.server, "log_path", None))
+            else:
+                response, status = handle_ask_payload(
+                    payload,
+                    db_path=getattr(self.server, "db_path"),
+                    log_path=getattr(self.server, "log_path", None),
+                )
             self.send_json(response, status=status)
         except Exception as exc:
             print(f"request_error path={self.path} type={type(exc).__name__}", flush=True)
@@ -952,13 +1078,14 @@ class RAGRequestHandler(BaseHTTPRequestHandler):
         )
 
 
-def run_server(host: str, port: int, db_path: Path, api_key: str = "") -> None:
+def run_server(host: str, port: int, db_path: Path, api_key: str = "", log_path: Path | None = DEFAULT_LOG_PATH) -> None:
     readiness, status = check_readiness(db_path)
     if status != 200:
         raise RuntimeError(readiness["error"])
     server = ThreadingHTTPServer((host, port), RAGRequestHandler)
     server.db_path = db_path
     server.api_key = api_key
+    server.log_path = log_path
     print(f"Serving 30天出海指挥部 RAG on http://{host}:{port}")
     server.serve_forever()
 
@@ -969,12 +1096,13 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--port", default=int(os.environ.get("PORT", "8000")), type=int)
     parser.add_argument("--db", default=os.environ.get("RAG_DB_PATH", str(DEFAULT_DB_PATH)), type=Path)
     parser.add_argument("--api-key", default=os.environ.get("APP_API_KEY", ""))
+    parser.add_argument("--log-path", default=os.environ.get("RAG_EVENT_LOG_PATH", str(DEFAULT_LOG_PATH)), type=Path)
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    run_server(args.host, args.port, args.db, api_key=args.api_key)
+    run_server(args.host, args.port, args.db, api_key=args.api_key, log_path=args.log_path)
 
 
 if __name__ == "__main__":
