@@ -31,6 +31,7 @@ class WebServiceTest(unittest.TestCase):
 
         self.assertIn("出海投放 AI 军师", html)
         self.assertIn("私有问答助手", html)
+        self.assertIn("<b>433</b><span>知识片段</span>", html)
         self.assertIn("gateInput", html)
         self.assertIn("access_code", html)
         self.assertIn("Authorization", html)
@@ -44,6 +45,7 @@ class WebServiceTest(unittest.TestCase):
         self.assertIn("chatScroll", html)
         self.assertIn("composerInput", html)
         self.assertIn("sources-toggle", html)
+        self.assertIn("formatAnswerHtml", html)
         self.assertIn("copyBtn", html)
         self.assertIn("clearBtn", html)
         self.assertIn("rag_feedback", html)

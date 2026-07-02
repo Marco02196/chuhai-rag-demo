@@ -7,3 +7,4 @@ __pycache__/
 .env
 .env.*
 set_deepseek_key.ps1
+output/interaction_events.jsonl

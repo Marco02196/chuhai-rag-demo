@@ -8,6 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Lock
 from typing import Callable
+from urllib.parse import urlparse
 from uuid import uuid4
 
 from rag_answer import answer_question, retrieve_context
@@ -145,10 +146,10 @@ def render_index_html() -> str:
   /* 主布局 */
   .shell{
     position:relative;z-index:1;
-    max-width:1100px;margin:14px auto 24px;
+    max-width:1280px;margin:14px auto 24px;
     padding:0 16px;
-    display:grid;grid-template-columns:300px 1fr;
-    gap:16px;
+    display:grid;grid-template-columns:280px minmax(0,1fr);
+    gap:18px;
     min-height:calc(100vh - 110px);
   }
   @media(max-width:860px){
@@ -163,9 +164,10 @@ def render_index_html() -> str:
   /* 左侧诊断控制台 */
   .control-panel{
     border-radius:var(--radius-lg);
-    padding:20px 18px;
-    display:flex;flex-direction:column;gap:22px;
+    padding:18px 16px;
+    display:flex;flex-direction:column;gap:18px;
     align-self:start;
+    position:sticky;top:86px;
   }
   .panel-label{
     font-size:11px;font-family:var(--mono);letter-spacing:.06em;
@@ -243,27 +245,61 @@ def render_index_html() -> str:
     border-radius:var(--radius-lg);
     display:flex;flex-direction:column;min-height:0;
     overflow:hidden;
+    height:calc(100vh - 112px);
+    background:rgba(255,255,255,0.72);
   }
-  .chat-scroll{flex:1;padding:24px 24px 0;overflow-y:auto;max-height:calc(100vh - 280px);}
+  .chat-scroll{
+    flex:1;
+    padding:24px 28px 0;
+    overflow-y:auto;
+    min-height:0;
+    scroll-behavior:smooth;
+  }
   .empty-state{
     color:var(--ink-300);font-size:13px;text-align:center;
     padding:60px 20px;font-family:var(--mono);
   }
 
-  .msg{margin-bottom:18px;}
+  .msg{margin-bottom:22px;}
   .msg-q{
     background:linear-gradient(135deg, rgba(96,165,250,0.16), rgba(191,219,254,0.22));
     border:1px solid var(--glass-border-blue);
     border-radius:var(--radius-md);padding:12px 16px;
-    font-size:14px;color:var(--ink-900);margin-bottom:10px;
-    max-width:88%;
+    font-size:14px;color:var(--ink-900);margin:0 0 12px auto;
+    max-width:min(78ch, 88%);
+    line-height:1.65;
+    box-shadow:0 1px 2px rgba(15,37,64,0.04);
   }
   .msg-a{
-    border-left:2px solid var(--blue-400);
-    padding:4px 0 4px 16px;
-    font-size:14px;color:var(--ink-700);
+    background:rgba(255,255,255,0.9);
+    border:1px solid rgba(147,197,253,0.5);
+    border-left:4px solid var(--blue-500);
+    border-radius:16px;
+    padding:18px 20px;
+    font-size:15px;color:var(--ink-700);
+    box-shadow:0 8px 24px rgba(59,130,246,0.08);
+    max-width:min(86ch, 100%);
   }
   .msg-a.loading{color:var(--ink-500);font-family:var(--mono);font-size:12.5px;}
+  .answer-text{
+    color:var(--ink-900);
+    font-size:15.5px;
+    line-height:1.85;
+    font-weight:400;
+    white-space:pre-wrap;
+    word-break:break-word;
+  }
+  .answer-text strong{
+    font-weight:700;
+    color:var(--ink-900);
+    display:inline;
+  }
+  .answer-text .answer-heading{
+    display:block;
+    margin:18px 0 8px;
+    font-size:16px;
+    line-height:1.45;
+  }
   .skel{display:flex;flex-direction:column;gap:8px;padding:6px 0;}
   .skel-line{
     height:10px;border-radius:4px;
@@ -275,9 +311,13 @@ def render_index_html() -> str:
   .cold-start-note{margin-top:6px;font-size:11px;color:var(--ink-300);font-family:var(--mono);}
 
   /* 来源引用 */
-  .sources{margin-top:10px;}
+  .sources{
+    margin-top:16px;
+    padding-top:12px;
+    border-top:1px solid rgba(147,197,253,0.35);
+  }
   .sources-toggle{
-    font-size:11.5px;color:var(--teal);background:none;border:none;
+    font-size:12px;color:var(--teal);background:none;border:none;
     cursor:pointer;display:flex;align-items:center;gap:5px;
     font-family:var(--mono);padding:0;
   }
@@ -288,14 +328,14 @@ def render_index_html() -> str:
   .source-card{
     background:var(--glass-bg-strong);
     border:1px solid var(--glass-border-blue);border-radius:var(--radius-sm);
-    padding:8px 10px;font-size:12px;
+    padding:10px 12px;font-size:12.5px;
   }
   .source-card .meta{display:flex;justify-content:space-between;margin-bottom:4px;}
   .source-card .cat{color:var(--teal);font-family:var(--mono);font-size:10.5px;}
   .source-card .score{color:var(--ink-300);font-family:var(--mono);font-size:10.5px;}
   .source-card .excerpt{color:var(--ink-700);}
 
-  .feedback-row{display:flex;gap:8px;margin-top:10px;}
+  .feedback-row{display:flex;gap:8px;margin-top:14px;}
   .fb-btn{
     width:26px;height:26px;border-radius:8px;border:1px solid var(--glass-border-blue);
     background:var(--glass-bg-soft);color:var(--ink-300);cursor:pointer;font-size:12px;
@@ -308,16 +348,18 @@ def render_index_html() -> str:
 
   /* 输入区 */
   .composer{
-    padding:14px 24px 20px;
+    padding:16px 28px 20px;
     border-top:1px solid var(--glass-border-blue);
-    background:var(--glass-bg-soft);
+    background:rgba(255,255,255,0.76);
+    box-shadow:0 -10px 24px rgba(59,130,246,0.06);
   }
   .composer-row{display:flex;gap:10px;}
   .composer textarea{
     flex:1;resize:none;background:var(--glass-bg-strong);
     border:1px solid var(--glass-border-blue);border-radius:var(--radius-md);
-    padding:11px 14px;color:var(--ink-900);font-size:14px;
-    font-family:var(--sans);min-height:46px;max-height:120px;
+    padding:12px 14px;color:var(--ink-900);font-size:15px;
+    line-height:1.55;
+    font-family:var(--sans);min-height:50px;max-height:132px;
   }
   .composer textarea::placeholder{color:var(--ink-300);}
   .composer textarea:focus{outline:none;border-color:var(--blue-400);box-shadow:0 0 0 3px rgba(96,165,250,0.18);}
@@ -386,12 +428,18 @@ def render_index_html() -> str:
     }
     .session-pill{display:none!important;}
     .shell{padding:0 8px;gap:10px;}
+    .chat-panel{order:1;}
+    .control-panel{order:2;}
+    .control-panel{position:relative;top:auto;}
     .control-panel{padding:14px 12px;gap:16px;}
-    .chat-scroll{max-height:56vh;padding:16px 14px 0;}
+    .chat-panel{height:68vh;min-height:520px;}
+    .chat-scroll{padding:16px 14px 0;}
     .composer{padding:12px 14px 14px;}
     .composer-row{flex-direction:column;}
     .send-btn{min-height:42px;}
     .msg-q{max-width:100%;}
+    .msg-a{padding:15px 14px;border-radius:14px;}
+    .answer-text{font-size:15px;line-height:1.78;}
   }
 </style>
 </head>
@@ -417,7 +465,7 @@ def render_index_html() -> str:
       <div class="sub">30天出海指挥部知识库 · 私有问答助手</div>
     </div>
     <div class="topbar-stats">
-      <div class="topbar-stat"><b>381</b><span>知识片段</span></div>
+      <div class="topbar-stat"><b>433</b><span>知识片段</span></div>
       <div class="topbar-stat"><b>5</b><span>业务分类</span></div>
       <div class="topbar-stat"><b>AI</b><span>策略建议</span></div>
     </div>
@@ -708,7 +756,7 @@ function renderAnswer(container, answerText, sources, requestId){
     </div>` : '';
 
   container.innerHTML = `
-    <div class="answer-text">${escapeHtml(answerText)}</div>
+    <div class="answer-text">${formatAnswerHtml(answerText)}</div>
     ${sourcesHtml}
     <div class="feedback-row">
       <button class="fb-btn" data-fb="up" title="有用">👍</button>
@@ -738,6 +786,12 @@ function escapeHtml(str){
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+function formatAnswerHtml(str){
+  return escapeHtml(str)
+    .replace(/(^|\\n)#{2,3}\\s*([^\\n]+)/g, '$1<strong class="answer-heading">$2</strong>')
+    .replace(/\\*\\*([^*]+)\\*\\*/g, '<strong>$1</strong>');
 }
 
 async function recordFeedback(value, requestId){
@@ -1031,14 +1085,15 @@ class RAGRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self) -> None:
-        if self.path == "/health":
+        path = urlparse(self.path).path
+        if path == "/health":
             self.send_json({"ok": True})
             return
-        if self.path == "/readyz":
+        if path == "/readyz":
             response, status = check_readiness(getattr(self.server, "db_path"))
             self.send_json(response, status=status)
             return
-        if self.path in {"/", "/index.html"}:
+        if path in {"/", "/index.html"}:
             body = render_index_html().encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
