@@ -16,6 +16,7 @@ from rag_answer import answer_question, retrieve_context
 
 DEFAULT_DB_PATH = Path(__file__).parent / "output" / "30tian_chuhai.sqlite"
 DEFAULT_LOG_PATH = Path(__file__).parent / "output" / "interaction_events.jsonl"
+DEFAULT_UI_PATH = Path(__file__).parent / "web_ui.html"
 EVENT_LOG_LOCK = Lock()
 
 
@@ -904,6 +905,10 @@ document.getElementById('copyBtn').addEventListener('click', async () => {
 </html>
 
 """
+
+
+def render_index_html() -> str:
+    return DEFAULT_UI_PATH.read_text(encoding="utf-8")
 
 
 def utc_timestamp() -> str:
