@@ -17,6 +17,7 @@ from rag_answer import answer_question, retrieve_context
 DEFAULT_DB_PATH = Path(__file__).parent / "output" / "30tian_chuhai.sqlite"
 DEFAULT_LOG_PATH = Path(__file__).parent / "output" / "interaction_events.jsonl"
 DEFAULT_UI_PATH = Path(__file__).parent / "web_ui.html"
+DEFAULT_APP_UI_PATH = Path(__file__).parent / "web_app.html"
 EVENT_LOG_LOCK = Lock()
 
 
@@ -911,6 +912,10 @@ def render_index_html() -> str:
     return DEFAULT_UI_PATH.read_text(encoding="utf-8")
 
 
+def render_app_html() -> str:
+    return DEFAULT_APP_UI_PATH.read_text(encoding="utf-8")
+
+
 def utc_timestamp() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
@@ -1100,6 +1105,14 @@ class RAGRequestHandler(BaseHTTPRequestHandler):
             return
         if path in {"/", "/index.html"}:
             body = render_index_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        if path in {"/app", "/app.html"}:
+            body = render_app_html().encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))

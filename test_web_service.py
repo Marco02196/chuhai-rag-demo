@@ -4,7 +4,14 @@ import json
 from tempfile import TemporaryDirectory
 from pathlib import Path
 
-from web_service import check_auth, check_readiness, handle_ask_payload, handle_feedback_payload, render_index_html
+from web_service import (
+    check_auth,
+    check_readiness,
+    handle_ask_payload,
+    handle_feedback_payload,
+    render_app_html,
+    render_index_html,
+)
 
 
 class WebServiceTest(unittest.TestCase):
@@ -26,8 +33,20 @@ class WebServiceTest(unittest.TestCase):
 
         self.assertFalse(check_auth(headers, expected_api_key="secret"))
 
-    def test_render_index_html_includes_demo_positioning_and_access_code_field(self):
+    def test_render_index_html_includes_northstar_access_gate(self):
         html = render_index_html()
+
+        self.assertIn("Northstar", html)
+        self.assertIn("北极星", html)
+        self.assertIn("开始导航", html)
+        self.assertIn("433", html)
+        self.assertIn("gateIn", html)
+        self.assertIn("access_code", html)
+        self.assertIn("/app?code=", html)
+        self.assertIn("window.location.href", html)
+
+    def test_render_app_html_includes_real_rag_chat_app(self):
+        html = render_app_html()
 
         self.assertIn("出海投放 AI 军师", html)
         self.assertIn("DeepSeek RAG", html)
