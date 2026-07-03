@@ -626,7 +626,7 @@ body{
 </div>
 
 <script>
-const CFG={QUERY:'/api/ask',FEEDBACK:'/api/feedback',COLD_MS:3000};
+const CFG={QUERY:'/api/ask',FEEDBACK:'/api/feedback',COLD_MS:3000,TIMEOUT_MS:60000};
 const S={intent:'综合诊断',kb:'全部',depth:'标准',token:null,lastAns:null};
 
 const CATEGORY_BY_LABEL={
@@ -739,7 +739,15 @@ const emptyState=document.getElementById('emptyState');
 const input=document.getElementById('input');
 const sendBtn=document.getElementById('sendBtn');
 
-function autoResize(){input.style.height='auto';input.style.height=Math.min(input.scrollHeight,140)+'px';}
+let rafId=null;
+function autoResize(){
+  if(rafId)return;
+  rafId=requestAnimationFrame(()=>{
+    rafId=null;
+    input.style.height='auto';
+    input.style.height=Math.min(input.scrollHeight,140)+'px';
+  });
+}
 input.addEventListener('input',autoResize);
 input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submit();}});
 document.querySelectorAll('.qchip').forEach(c=>c.addEventListener('click',()=>{
@@ -747,7 +755,7 @@ document.querySelectorAll('.qchip').forEach(c=>c.addEventListener('click',()=>{
 }));
 
 function scrollBottom(){chatArea.scrollTo({top:chatArea.scrollHeight,behavior:'smooth'});}
-function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function esc(s){const d=document.createElement('div');d.textContent=String(s??'');return d.innerHTML;}
 function fmtAnswer(s){
   return esc(s)
     .replace(/(^|\n)#{2,3}\s*([^\n]+)/g,'$1<strong>$2</strong>')
@@ -786,24 +794,40 @@ function appendLoading(){
   return wrap;
 }
 
-function renderAnswer(wrap,text,sources){
-  const content=wrap.querySelector('.ai-content');
-  const srcHtml=sources&&sources.length?`
+function renderSources(sources){
+  if(!sources||!sources.length)return'';
+  return`
     <button class="src-toggle"><span class="chev">›</span>查看 ${sources.length} 条引用来源</button>
     <div class="src-list">
-      ${sources.map(s=>`
+      ${sources.map(s=>{
+        const num=s.source_number!=null?`#${esc(s.source_number)} `:'';
+        const title=s.title?esc(s.title):'';
+        const path=s.source_path?esc(s.source_path):'';
+        const body=s.excerpt??s.snippet??s.text??s.content??'';
+        const score=s.score!=null?`相关度 ${esc(s.score)}`:'';
+        return`
         <div class="src-card">
-          <div class="src-top"><span class="src-cat">${esc(s.category)}</span><span class="src-sc">相关度 ${s.score}</span></div>
-          <div class="src-text">${esc(s.excerpt)}</div>
-        </div>`).join('')}
-    </div>`:'';
+          <div class="src-top">
+            <span class="src-cat">${esc(s.category??'知识库')}</span>
+            <span class="src-sc">${num}${score}</span>
+          </div>
+          ${title?`<div class="src-text" style="color:var(--body);font-weight:600;margin-bottom:3px;">${title}</div>`:''}
+          ${body?`<div class="src-text">${esc(body)}</div>`:''}
+          ${path?`<div class="src-text" style="font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:4px;">${path}</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function renderAnswer(wrap,text,sources,requestId){
+  const content=wrap.querySelector('.ai-content');
   content.innerHTML=`
     <div class="ai-label">Northstar · ${esc(S.intent)} · ${esc(S.depth)}</div>
     <div class="ai-text">${fmtAnswer(text)}</div>
-    ${srcHtml}
+    ${renderSources(sources)}
     <div class="fb-row">
-      <button class="fb-btn" data-v="up">👍</button>
-      <button class="fb-btn" data-v="dn">👎</button>
+      <button class="fb-btn" data-v="up" aria-label="有帮助">👍</button>
+      <button class="fb-btn" data-v="dn" aria-label="没帮助">👎</button>
       <span class="fb-lbl">这条回答有帮助吗？</span>
     </div>`;
   const tog=content.querySelector('.src-toggle');
@@ -811,6 +835,16 @@ function renderAnswer(wrap,text,sources){
   content.querySelectorAll('.fb-btn').forEach(b=>b.addEventListener('click',()=>{
     content.querySelectorAll('.fb-btn').forEach(x=>x.classList.remove('up','dn'));
     b.classList.add(b.dataset.v);
+    if(!requestId)return;
+    fetch(CFG.FEEDBACK,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.token},
+      body:JSON.stringify({
+        request_id:requestId,
+        feedback:b.dataset.v==='up'?'up':'down',
+        answer_preview:String(text).slice(0,200)
+      })
+    }).catch(()=>{});
   }));
   S.lastAns=content.querySelector('.ai-text');
   scrollBottom();
@@ -823,6 +857,8 @@ async function submit(){
   appendQ(text);input.value='';autoResize();sendBtn.disabled=true;
   const loadEl=appendLoading();
   const coldT=setTimeout(()=>{const n=loadEl.querySelector('.cold-note');if(n)n.style.display='block';},CFG.COLD_MS);
+  const ctrl=new AbortController();
+  const timeoutT=setTimeout(()=>ctrl.abort(),CFG.TIMEOUT_MS);
   try{
     const cfg=DEPTH_CONFIG[S.depth]||DEPTH_CONFIG['标准'];
     const categoryKey=CATEGORY_BY_LABEL[S.kb]||CATEGORY_BY_LABEL[S.intent]||null;
@@ -835,27 +871,27 @@ async function submit(){
         limit:cfg.limit,
         depth:cfg.depth,
         use_llm:true
-      })
+      }),
+      signal:ctrl.signal
     });
     const data=await r.json().catch(()=>({}));
-    if(r.status===401){
+    if(r.status===401||r.status===403){
       S.token=null;
       sessionStorage.removeItem('access_code');
+      clearTimeout(coldT);
+      loadEl.remove();
       showGate('访问码不正确，请重新输入');
       return;
     }
     if(!r.ok)throw new Error(data.error||'生成失败，请稍后重试');
-    const sources=(data.sources||[]).map(s=>({
-      category:s.category||S.kb||'知识库',
-      score:s.source_number?'来源 '+s.source_number:'相关',
-      excerpt:[s.title,s.source_path].filter(Boolean).join(' · ')||'已命中相关知识片段'
-    }));
-    clearTimeout(coldT);renderAnswer(loadEl,data.answer||'没有生成有效回答，请换个问题重试。',sources);
+    clearTimeout(coldT);
+    renderAnswer(loadEl,data.answer||'没有生成有效回答，请换个问题重试。',data.sources||[],data.request_id);
   }catch(e){
     clearTimeout(coldT);
     const c=loadEl.querySelector('.ai-content');
-    if(c)c.innerHTML=`<div class="err-text">生成失败，请稍后重试。如持续失败请联系项目负责人。${esc(e.message||'')}</div>`;
-  }finally{sendBtn.disabled=false;scrollBottom();}
+    const msg=e.name==='AbortError'?'等待超时，知识库或模型可能正在冷启动，请稍后重试。':(e.message||'网络错误');
+    if(c)c.innerHTML=`<div class="err-text">生成失败，请稍后重试。如持续失败请联系项目负责人。${esc(msg)}</div>`;
+  }finally{clearTimeout(timeoutT);sendBtn.disabled=false;scrollBottom();}
 }
 
 sendBtn.addEventListener('click',submit);
