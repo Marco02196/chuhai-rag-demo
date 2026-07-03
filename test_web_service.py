@@ -48,13 +48,15 @@ class WebServiceTest(unittest.TestCase):
     def test_render_app_html_includes_real_rag_chat_app(self):
         html = render_app_html()
 
-        self.assertIn("出海投放 AI 军师", html)
+        self.assertIn("Northstar", html)
+        self.assertIn("北极星", html)
+        self.assertIn("投放决策引擎", html)
         self.assertIn("DeepSeek RAG", html)
         self.assertIn("433 个知识片段", html)
         self.assertIn("gateIn", html)
         self.assertIn("access_code", html)
         self.assertIn("Authorization", html)
-        self.assertIn("生成建议", html)
+        self.assertIn("发送", html)
         self.assertIn("综合诊断", html)
         self.assertIn("投放决策", html)
         self.assertIn("回答深度", html)
