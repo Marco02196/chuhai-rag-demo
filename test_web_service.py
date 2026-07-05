@@ -39,7 +39,7 @@ class WebServiceTest(unittest.TestCase):
         self.assertIn("Northstar", html)
         self.assertIn("北极星", html)
         self.assertIn("开始导航", html)
-        self.assertIn("438", html)
+        self.assertIn("446", html)
         self.assertIn("gateIn", html)
         self.assertIn("access_code", html)
         self.assertIn("/app?code=", html)
@@ -52,7 +52,7 @@ class WebServiceTest(unittest.TestCase):
         self.assertIn("北极星", html)
         self.assertIn("投放决策引擎", html)
         self.assertIn("DeepSeek RAG", html)
-        self.assertIn("438 个知识片段", html)
+        self.assertIn("446 个知识片段", html)
         self.assertIn("gateIn", html)
         self.assertIn("access_code", html)
         self.assertIn("Authorization", html)
@@ -219,4 +219,3 @@ class WebServiceTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -1,0 +1,100 @@
+[
+  {
+    "category": "风控与踩坑库",
+    "category_key": "risk_playbook",
+    "title": "高风险广告先确认地区、资质和平台准入",
+    "text": "原始经验笔记：博彩、游戏、金融、健康等高风险品类，不要一上来先讨论素材和预算。先确认目标国家/地区能不能投、广告账户有没有对应权限、业务有没有资质、落地页是否能证明合法经营。很多“前两天能跑、第三天掉量或被拒”的问题，本质不是算法坏了，而是准入、审核、承诺、落地页或事件链路里有一环不稳。\n\n保留用法：把这条当作上线前检查项，不要把它改写成绕审核方法。\n\n来源线索：Meta 在线博彩和游戏广告授权说明、Meta 广告标准、Google Ads 博彩和游戏政策、TikTok 博彩和游戏广告政策。",
+    "source_urls": [
+      "https://www.facebook.com/business/help/345214789920228",
+      "https://transparency.meta.com/policies/ad-standards/restricted-goods-services/gambling-games/",
+      "https://support.google.com/adspolicy/answer/15132179",
+      "https://ads.tiktok.com/help/article/tiktok-ads-policy-gambling-and-games"
+    ],
+    "keywords": "高风险品类 博彩 游戏 金融 健康 地区准入 资质 授权 审核 落地页"
+  },
+  {
+    "category": "风控与踩坑库",
+    "category_key": "risk_playbook",
+    "title": "广告承诺和落地页不一致会放大审核与转化风险",
+    "text": "原始经验笔记：广告素材说的东西，落地页首屏必须接得住。素材说免费，页面却变付费；素材承诺高收益，页面没有风险说明；素材讲一个游戏玩法，落地页实际导向博彩或下注，这些都会同时影响审核、点击质量和注册转化。CTR 高不代表流量好，可能只是承诺太刺激，后端接不住。\n\n保留用法：检查素材、文案、落地页、注册页、支付页是不是讲同一件事。\n\n来源线索：TikTok 广告审核最佳实践、Google Ads 目标网页要求、Meta 广告标准。",
+    "source_urls": [
+      "https://ads.tiktok.com/help/article/ad-review-checklist",
+      "https://support.google.com/adspolicy/answer/15132179",
+      "https://transparency.meta.com/policies/ad-standards/"
+    ],
+    "keywords": "广告承诺 落地页一致性 CTR高CVR低 审核 被拒 注册转化"
+  },
+  {
+    "category": "投放策略库",
+    "category_key": "ad_strategy",
+    "title": "CTR 高但注册低，先拆承诺、落地页、注册流程和回传",
+    "text": "原始经验笔记：遇到“点击很多但没人注册”，不要只回答换素材。先分四层看：第一层是素材吸引的是不是目标人群；第二层是落地页首屏有没有接住广告承诺；第三层是注册流程有没有门槛、加载、短信、地区或支付问题；第四层是注册/支付事件有没有漏传、延迟、重复或归因异常。\n\n保留用法：这条适合直接回答客户的口语问题，比如“点的人挺多就是不注册”。\n\n来源线索：Meta 广告相关性诊断、Meta Pixel / CAPI、TikTok Pixel / Events API。",
+    "source_urls": [
+      "https://www.facebook.com/business/help/403110480493160",
+      "https://www.facebook.com/business/help/2041148702652965",
+      "https://ads.tiktok.com/help/article/create-pixel",
+      "https://ads.tiktok.com/help/article/events-api"
+    ],
+    "keywords": "CTR高 注册低 CVR低 落地页 注册流程 Pixel CAPI Events API 回传"
+  },
+  {
+    "category": "投放策略库",
+    "category_key": "ad_strategy",
+    "title": "学习期不要频繁大改，先看样本量和信号质量",
+    "text": "原始经验笔记：新广告刚跑几小时或一两天，成本波动不一定说明计划失败。学习期里频繁改预算、受众、优化事件、素材组合，会让系统重新探索。真正要先看的是样本量够不够、转化事件有没有稳定回传、点击到加购/注册有没有中间信号。如果完全没有有效中间信号，要止损；如果有信号但样本少，先小幅调整。\n\n保留用法：回答“前两天乱跳要不要关”这类问题。\n\n来源线索：Meta 机器学习阶段说明、平台优化事件和转化信号文档。",
+    "source_urls": [
+      "https://www.facebook.com/business/help/112167992830700",
+      "https://www.facebook.com/business/help/2041148702652965"
+    ],
+    "keywords": "学习期 预算调整 关停 放量 样本量 转化信号"
+  },
+  {
+    "category": "技术落地库",
+    "category_key": "tech_execution",
+    "title": "Pixel 和 CAPI/Events API 要关注去重和后端确认",
+    "text": "原始经验笔记：只靠前端成功页埋点容易丢购买或注册事件，尤其是支付跳转、WebView、用户关闭页面、浏览器限制时。服务端回传能补强关键事件，但前后端同时上报时必须做去重。Meta 场景常见做法是同一个 event_id 去重；TikTok Events API 也要注意事件一致性、用户匹配参数和重复计数。\n\n保留用法：回答“广告后台数据和订单对不上”“CAPI 接了还不准”这类问题。\n\n来源线索：Meta Conversions API 去重说明、TikTok Events API。",
+    "source_urls": [
+      "https://developers.facebook.com/docs/marketing-api/conversions-api/deduplicate-pixel-and-server-events/",
+      "https://www.facebook.com/business/help/2041148702652965",
+      "https://ads.tiktok.com/help/article/events-api"
+    ],
+    "keywords": "Pixel CAPI Events API event_id 去重 后端回传 订单对账 事件匹配"
+  },
+  {
+    "category": "素材与文案库",
+    "category_key": "creative_copy",
+    "title": "高风险品类素材先保守表达，再测试更强 Hook",
+    "text": "原始经验笔记：高风险行业不要一上来就用最刺激的承诺、收益暗示、夸张前后对比、诱导性福利。先做一版保守素材验证审核稳定性和链路转化，再逐步测试更强 Hook。素材的目标不是只拉高 CTR，而是带来能继续注册、支付或留资的正确人群。\n\n保留用法：这条适合素材复盘，不适合写成规避审核词表。\n\n来源线索：TikTok 创意政策指南、TikTok 广告审核最佳实践、Meta 广告标准。",
+    "source_urls": [
+      "https://ads.tiktok.com/business/en-US/blog/guide-ad-policy-for-tiktok-creative",
+      "https://ads.tiktok.com/help/article/ad-review-checklist",
+      "https://transparency.meta.com/policies/ad-standards/"
+    ],
+    "keywords": "高风险素材 Hook CTR 审核稳定性 保守表达 夸大承诺"
+  },
+  {
+    "category": "复盘案例库",
+    "category_key": "review_cases",
+    "title": "前两天好第三天掉，要拉时间线而不是只怪素材疲劳",
+    "text": "原始经验笔记：前两天跑得好，第三天突然掉，复盘时先拉时间线：审核状态有没有变化、账户提示有没有变化、预算/出价有没有调整、素材有没有替换、落地页有没有发布、注册或支付有没有改动、Pixel/CAPI/Events API 有没有异常。只说“素材疲劳”太粗，容易漏掉审核、链路、回传和支付问题。\n\n保留用法：适合客户演示里的“第三天突然不行了”问题。\n\n来源线索：Meta 学习期、Meta Pixel/CAPI、TikTok Events API、落地页性能资料。",
+    "source_urls": [
+      "https://www.facebook.com/business/help/112167992830700",
+      "https://www.facebook.com/business/help/2041148702652965",
+      "https://ads.tiktok.com/help/article/events-api",
+      "https://web.dev/articles/vitals"
+    ],
+    "keywords": "第三天掉量 素材疲劳 审核 时间线 变更日志 回传 支付"
+  },
+  {
+    "category": "复盘案例库",
+    "category_key": "review_cases",
+    "title": "烧钱没单要先翻译成五层指标问题",
+    "text": "原始经验笔记：客户常说“烧钱没单”“钱花了没结果”“点的人多就是没人下单”。产品要先把口语翻译成五层：曝光有没有、点击有没有、注册/加购有没有、支付/成交有没有、事件回传准不准。每一层对应不同动作：素材、人群、落地页、支付、风控、回传，不要一上来就建议加预算或关停。\n\n保留用法：这条是口语识别样本，适合直接放进检索扩展和回答引用。\n\n来源线索：现有客户问法 + Meta/TikTok 转化链路与事件回传资料。",
+    "source_urls": [
+      "https://www.facebook.com/business/help/403110480493160",
+      "https://www.facebook.com/business/help/2041148702652965",
+      "https://ads.tiktok.com/help/article/create-pixel"
+    ],
+    "keywords": "烧钱没单 口语问题 曝光 点击 注册 加购 支付 回传"
+  }
+]
