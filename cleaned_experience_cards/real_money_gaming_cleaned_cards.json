@@ -1,0 +1,130 @@
+[
+  {
+    "category": "风控与踩坑库",
+    "category_key": "risk_playbook",
+    "title": "真金游戏投放第一步是牌照、地区和平台授权",
+    "question": "真金游戏能不能直接上 Meta、Google 或 TikTok 投放？",
+    "scenario": "准备投放真钱游戏、在线赌场、体育投注、彩票、扑克、rummy、fantasy sports、奖品型游戏或带现金/实物奖励的游戏。",
+    "diagnosis": "真金游戏不是普通游戏投放。只要用户支付、下注、投入有价物，或有机会获得现金、实物、等值奖励，就会进入 online gambling / real-money gaming 的高风险范围。Meta 通常需要广告账户授权；Google Ads 通常需要按国家和产品类型认证；TikTok 对真实金钱或金融奖励游戏限制更严；Google Play 发行还要求特定国家、牌照和申请流程。",
+    "actions": [
+      "先定义产品类型：真钱赌博、体育投注、技能游戏、fantasy sports、social casino、sweepstakes、普通休闲游戏，不要混在一起。",
+      "逐一确认目标国家/地区是否合法，以及平台是否允许该类型广告或应用分发。",
+      "准备牌照、经营主体、域名、落地页、年龄限制、责任博彩提示和隐私合规材料。",
+      "每个平台单独建准入清单，不要把一个平台通过当成所有平台都能跑。"
+    ],
+    "risk": "没有授权或认证就投放，容易出现广告拒登、账户受限、素材无法学习、应用下架或支付链路受阻。",
+    "source_urls": [
+      "https://www.facebook.com/business/help/345214789920228",
+      "https://transparency.meta.com/policies/ad-standards/restricted-goods-services/gambling-games/",
+      "https://support.google.com/adspolicy/answer/15132179",
+      "https://ads.tiktok.com/help/article/tiktok-ads-policy-gambling-and-games",
+      "https://support.google.com/googleplay/android-developer/answer/9877032"
+    ],
+    "keywords": "真金游戏 Real money gaming RMG 在线博彩 赌博游戏 体育投注 牌照 地区准入 平台授权"
+  },
+  {
+    "category": "投放策略库",
+    "category_key": "ad_strategy",
+    "title": "真钱游戏和 social casino 要分账户、分素材、分落地页",
+    "question": "真钱游戏、social casino、免费游戏能不能用同一套账户和素材跑？",
+    "scenario": "产品既有免费试玩、虚拟金币、social casino，又有现金充值、提现、实物奖励或真钱下注链路。",
+    "diagnosis": "真钱游戏和 social casino 的政策边界不同。Google Ads 明确区分 online gambling 和 social casino，认证也可能分开；Meta 对在线赌博和游戏广告要求授权；TikTok 要求游戏广告不能涉及真实金钱或金融奖励。把免费玩法、真钱玩法、充值提现、奖励承诺混在同一账户或同一落地页，会让审核和投放数据都变得不稳定。",
+    "actions": [
+      "先把产品路径拆成免费试玩、虚拟金币、真钱充值、提现/兑奖四类。",
+      "真钱链路和 social casino 链路分别做账户、落地页、事件和素材命名。",
+      "素材里明确用户是否能赢得真实金钱或真实奖品，避免让平台或用户误解。",
+      "如果平台要求不同认证，不要用一个认证覆盖另一个产品类型。"
+    ],
+    "risk": "混投会导致审核判断不清、账户风险升高，也会让 CTR、注册率和付费率复盘失真。",
+    "source_urls": [
+      "https://support.google.com/adspolicy/answer/15132179",
+      "https://www.facebook.com/business/help/345214789920228",
+      "https://ads.tiktok.com/help/article/tiktok-ads-policy-gambling-and-games"
+    ],
+    "keywords": "真钱游戏 social casino 免费游戏 虚拟金币 充值 提现 账号分离 认证分离"
+  },
+  {
+    "category": "素材与文案库",
+    "category_key": "creative_copy",
+    "title": "真金游戏素材不要用赢钱暗示当主 Hook",
+    "question": "真金游戏素材怎么写 Hook 才更稳？",
+    "scenario": "团队想用赢钱截图、提现金额、暴富承诺、赔率暗示、奖金刺激或玩家收益故事拉点击。",
+    "diagnosis": "真钱游戏素材最容易出问题的是收益暗示和过度诱导。直接强调赢钱、稳赚、快速提现、低风险高回报，会同时触发审核、用户保护和合规风险。更稳的素材应该围绕玩法、许可地区、娱乐属性、规则透明、责任博彩提示和用户体验表达，而不是把现金收益当成主卖点。",
+    "actions": [
+      "把 Hook 从“能赢多少钱”改成“玩法、赛事场景、游戏体验、规则透明和合规许可”。",
+      "避免使用夸张金额、保证收益、诱导充值、未成年人暗示和过度刺激画面。",
+      "落地页首屏同步展示年龄限制、地区限制、责任博彩和规则说明。",
+      "素材测试时同时看审核通过率、CTR、注册质量和充值/留存，不只看点击。"
+    ],
+    "risk": "用赢钱暗示拉高 CTR，可能带来低质量点击、审核拒登、账户受限和长期资产风险。",
+    "source_urls": [
+      "https://transparency.meta.com/policies/ad-standards/restricted-goods-services/gambling-games/",
+      "https://ads.tiktok.com/help/article/tiktok-ads-policy-gambling-and-games",
+      "https://support.google.com/adspolicy/answer/15132179"
+    ],
+    "keywords": "真金游戏素材 Hook 赢钱暗示 提现金额 责任博彩 审核 CTR 注册质量"
+  },
+  {
+    "category": "技术落地库",
+    "category_key": "tech_execution",
+    "title": "RMG 落地页必须把年龄、地区、规则和责任博彩放前面",
+    "question": "真金游戏落地页为什么不能只做成普通游戏注册页？",
+    "scenario": "广告点击不错，但审核不稳、注册低、支付低，或者用户进入页面后对充值、提现、奖金规则产生误解。",
+    "diagnosis": "RMG 落地页除了转化，还承担合规解释。首屏如果只强调奖金、下载、注册送礼，却没有年龄限制、地区限制、玩法规则、提现条件、风险提示、隐私/数据同意，平台审核和用户转化都会受影响。落地页承诺不清会造成高点击低注册，也会放大投诉和风控风险。",
+    "actions": [
+      "首屏明确产品类型、适用地区、年龄限制和是否涉及真钱或真实奖品。",
+      "注册前展示奖金规则、提现条件、费用、风控条款和责任博彩入口。",
+      "移动端优先检查加载速度、CTA 可见性、表单步骤和支付跳转稳定性。",
+      "把广告承诺、落地页说明、注册页和支付页逐项对齐。"
+    ],
+    "risk": "落地页只追求转化、不解释规则，会导致审核不稳、注册流失、支付争议和用户投诉。",
+    "source_urls": [
+      "https://support.google.com/adspolicy/answer/15132179",
+      "https://www.facebook.com/business/help/345214789920228",
+      "https://web.dev/articles/vitals"
+    ],
+    "keywords": "RMG落地页 年龄限制 地区限制 责任博彩 提现规则 注册 支付 移动端"
+  },
+  {
+    "category": "复盘案例库",
+    "category_key": "review_cases",
+    "title": "真金游戏 CTR 高但首存低，要先拆信任、支付和事件回传",
+    "question": "真金游戏点击和注册都有，但首存低，是不是人群不准？",
+    "scenario": "广告 CTR 不低，注册也有，但充值、首存、首次下注或付费留存明显偏低。",
+    "diagnosis": "RMG 的首存低不一定是人群不准。常见问题包括：广告承诺和落地页不一致、奖金规则不清、支付方式不适配、KYC/年龄验证阻塞、提现信任不足、地区不匹配、充值事件漏传或延迟。要把普通 CVR 拆成注册、验证、充值、首存、下注、留存多个节点。",
+    "actions": [
+      "把漏斗拆成点击、注册、KYC/年龄验证、充值页到达、首存成功、首次下注、次日留存。",
+      "检查支付方式、币种、手续费、失败率、到账时间和地区适配。",
+      "核对首存、充值、下注事件是否在 Pixel、CAPI 或 Events API 里稳定回传。",
+      "用真实设备走一遍注册到首存流程，记录每个掉点。"
+    ],
+    "risk": "只把首存低归因到人群，会错过支付、信任、规则和回传这些更直接的瓶颈。",
+    "source_urls": [
+      "https://www.facebook.com/business/help/2041148702652965",
+      "https://ads.tiktok.com/help/article/events-api",
+      "https://support.google.com/adspolicy/answer/15132179"
+    ],
+    "keywords": "真金游戏 首存低 充值 KYC 支付 信任 回传 Pixel CAPI Events API"
+  },
+  {
+    "category": "风控与踩坑库",
+    "category_key": "risk_playbook",
+    "title": "RMG 投放不要把合规问题伪装成普通游戏问题",
+    "question": "真金游戏能不能包装成普通游戏或娱乐 App 来跑？",
+    "scenario": "团队想避开真钱游戏准入，把广告和落地页写成普通游戏、娱乐应用、模拟玩法或工具页。",
+    "diagnosis": "如果产品实际包含真钱下注、现金提现、实物奖励或有价物参与，把它包装成普通游戏会造成素材、落地页、应用、支付和事件链路不一致。平台政策通常按实际产品和落地页判断，而不是只按广告文案判断。正确做法是按 RMG 做准入、资质、地区、年龄和责任博彩配置。",
+    "actions": [
+      "按实际业务链路定义产品，不要只按广告表层文案定义。",
+      "广告、落地页、应用商店页、支付页和客服话术保持一致。",
+      "需要授权的平台先走授权或认证流程，再测试素材。",
+      "如果当前地区或平台不允许该品类，换合规市场或换产品路径，不要硬投。"
+    ],
+    "risk": "伪装普通游戏可能短期过审，但会放大封户、下架、支付冻结和品牌风险。",
+    "source_urls": [
+      "https://transparency.meta.com/policies/ad-standards/restricted-goods-services/gambling-games/",
+      "https://ads.tiktok.com/help/article/tiktok-ads-policy-gambling-and-games",
+      "https://support.google.com/googleplay/android-developer/answer/9877032"
+    ],
+    "keywords": "RMG 合规 普通游戏包装 伪装 审核 下架 支付冻结 品牌风险"
+  }
+]
