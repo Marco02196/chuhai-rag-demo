@@ -1,19 +1,19 @@
 {
   "source_root": "notion_30_export/part1",
   "output": "C:\\Users\\kaco_\\Desktop\\工作流\\rag_preprocess\\output\\30tian_chuhai_chunks.jsonl",
-  "chunks": 499,
+  "chunks": 503,
   "categories": {
     "素材与文案库": 30,
-    "投放策略库": 288,
+    "投放策略库": 290,
     "技术落地库": 90,
-    "风控与踩坑库": 61,
+    "风控与踩坑库": 63,
     "复盘案例库": 27,
     "通用知识库": 3
   },
   "content_types": {
     "markdown": 265,
     "csv_row": 116,
-    "diagnosis_card": 113,
+    "diagnosis_card": 117,
     "video_diagnosis_card": 5
   },
   "database": "C:\\Users\\kaco_\\Desktop\\工作流\\rag_preprocess\\output\\30tian_chuhai.sqlite"
