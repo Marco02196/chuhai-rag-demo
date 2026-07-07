@@ -1,0 +1,197 @@
+[
+  {
+    "category": "投放策略库",
+    "category_key": "ad_strategy",
+    "title": "FB 博彩广告分两类：真钱博彩必须授权，社交博彩不用",
+    "question": "在 Meta 投博彩广告，真钱和社交博彩的政策区别是什么？",
+    "scenario": "客户想投博彩类游戏广告但不清楚 Meta 的分类和政策门槛，团队需要快速判断项目是否可承接。",
+    "diagnosis": "Meta 把博彩广告分成两类：真钱博彩（RMG）和社交博彩（SCG）。RMG 涉及现金、加密货币等有价物品的参与和奖励——必须通过 MBS 授权与验证申请 Meta 书面许可，提供目标地区合法博彩牌照，仅面向 18 岁以上用户，落地页必须有年龄验证+负责任赌博提示+服务条款。SCG 模拟赌场但不涉及真钱——无需授权即可投放，但仍需面向 18 岁以上用户且不能在禁止国家投放。2025 年 7 月 Meta 更新了授权流程为 Permissions and Verifications 新系统。SCG 的最新规则：如果虚拟货币可以兑换任何形式的真实奖品，则被纳入 RMG 范畴需要完整授权。",
+    "actions": [
+      "先判断客户产品属于 RMG 还是 SCG——这是所有后续决策的基础。",
+      "RMG 项目需确认客户有目标地区合法牌照，否则不可承接。",
+      "SCG 虽然不需要授权，但仍需遵守 18+ 定向和禁止国家列表。",
+      "申请 RMG 授权需要：法律实体名+注册网站+牌照文件+广告账户 ID 列表，所有文件必须英文。"
+    ],
+    "risk": "混淆 RMG 和 SCG 的政策边界会导致广告被拒甚至账户被封。2025 年 7 月后 SCG 的豁免条件收紧了——虚拟币能兑现的也算 RMG。",
+    "source_urls": [
+      "https://transparency.meta.com/zh-cn/policies/ad-standards/restricted-goods-services/gambling-games/",
+      "https://www.facebook.com/business/help/345214789920228"
+    ],
+    "keywords": "Meta博彩广告 RMG 真钱博彩 社交博彩 SCG 广告授权 牌照 18+定向 负责任赌博"
+  },
+  {
+    "category": "投放策略库",
+    "category_key": "ad_strategy",
+    "title": "FB 博彩广告素材红线：不能说保证赢、不能出现钞票、不能有未成年人",
+    "question": "投博彩广告时，广告创意和素材有哪些绝对不能碰的红线？",
+    "scenario": "团队在审核博彩类广告素材时，需要一份明确的禁止清单来做合规审查。",
+    "diagnosis": "Meta 对博彩广告素材有明确的禁止内容清单：诱导性获利声明（保证赢钱、月入百万、轻松赚钱）→ 立即拒登；未成年人相关（儿童或青少年形象、卡通风格可能被误判）→ 高风险；虚假社会认同（大家都在玩、百万人推荐）→ 高风险；紧迫性操纵（限时 1 小时、马上截止）→ 中高风险；免费诱饵误导（免费赢大奖但需先存款）→ 高风险；不实赔率宣称（99% 中奖率）→ 高风险；成瘾性诱导（一玩就停不下来）→ 高风险。视觉元素也有限制：✅ 可用娱乐场景、奖杯、抽象图形、品牌 Logo、运动员；⚠️ 谨慎使用扑克牌（避免 A、K 大牌）、少量筹码；❌ 禁止钞票、金币堆、赌桌、老虎机特写。视频前三秒必须放品牌/生活场景，不能直接放游戏画面——这是 Meta AI 重点扫描的时间窗口。",
+    "actions": [
+      "建立素材审核 SOP：逐条对照禁止清单审查文案和视觉元素。",
+      "视频广告特别注意前三秒——必须是品牌场景，不能是游戏画面或金额。",
+      "社交博彩广告文案必须加免责声明：此游戏仅供 18+ 娱乐，不代表真钱博彩结果。",
+      "图片中的文字占比不要超过 20%（Meta 建议），避免全大写或过多惊叹号。"
+    ],
+    "risk": "AI 可能误判——图片中的扑克牌、筹码等元素被 AI 识别为违规；竞品可能恶意举报；账号历史违规记录会导致新广告被特别关注。即使广告通过审核，也可能在投放过程中被重新审查并下架。",
+    "source_urls": [
+      "https://www.huiimedia.com/blog/178.html",
+      "https://redclawey.com/zh-CN/blog/meta-policy-igaming-complete-guide/"
+    ],
+    "keywords": "博彩广告素材 禁止内容 文案红线 视觉红线 视频前三秒 免责声明 AI误判 素材审核SOP"
+  },
+  {
+    "category": "投放策略库",
+    "category_key": "ad_strategy",
+    "title": "博彩广告落地页合规清单：年龄验证门是第一道关口",
+    "question": "博彩广告的落地页需要满足哪些合规要求才能通过审核？",
+    "scenario": "客户准备博彩广告落地页但不确定 Meta 的合规检查标准，团队需要一份完整的落地页审查清单。",
+    "diagnosis": "落地页合规是许多广告主忽略的关键环节——Meta 的审查不仅针对广告本身，还包括链接的网站。必须包含：1) 年龄验证门——18+ 或当地法定年龄，必须在首屏可见（可以是日期输入或点击确认）；2) 负责任赌博信息——专门的区域或明显横幅，包含至少一个公认的问题赌博求助链接（GamCare / BeGambleAware 或地区等效）；3) 服务条款与隐私政策——必须从落地页可访问，footer 链接是底线，注册表单附近更佳；4) 牌照信息——受监管市场需显示牌照号码和颁发机构，灰色市场显示母公司的商业注册信息；5) 自我排除信息——如何自愿排除，Google Ads 认证的硬性要求，Meta 的强烈建议信号；6) 页面加载 < 3 秒、移动端适配、SSL 证书有效。额外注意：信息内容占比至少 60%，注册表单和推广内容占比不超过 40%。",
+    "actions": [
+      "落地页首屏必须放置年龄验证——非可选项而是必须项。",
+      "确保负责任赌博信息和求助链接在页面上可见。",
+      "检查广告承诺与落地页内容一致——不匹配是最快的被拒方式。",
+      "用 Meta 广告政策检查工具做预审查，降低明显违规风险。"
+    ],
+    "risk": "即使广告素材完全合规，落地页问题也会导致被拒。审核通过后落地页还会被定期重新扫描。缺少年龄验证是所有平台（Meta/Google/TikTok）的共同红线。",
+    "source_urls": [
+      "https://redclawey.com/en/blog/igaming-compliance-advertising-guide-2026/",
+      "https://agrowth.io/blogs/knowledge/how-to-run-betting-ads-on-facebook"
+    ],
+    "keywords": "博彩落地页 合规清单 年龄验证 负责任赌博 牌照展示 服务条款 自我排除 加载速度 内容占比"
+  },
+  {
+    "category": "投放策略库",
+    "category_key": "ad_strategy",
+    "title": "社交博彩 → 真钱博彩的漏斗模型是最高效的 FB 获客路径",
+    "question": "FB 上怎么高效获取博彩用户？社交博彩和真钱博彩的投放策略有什么区别？",
+    "scenario": "客户想高效获取博彩用户，团队需要设计从合规获客到变现的完整投放路径。",
+    "diagnosis": "行业公认最有效的策略是社交博彩→真钱博彩的漏斗模型。阶段一（数据收集，预算 60%）：目标设为 App Install，宽泛定向游戏兴趣人群（25-45 岁，不限性别，赌场游戏兴趣），不涉及真钱→审核通过率高→快速积累种子用户。阶段二（转化变现，预算 40%）：目标设为 Conversions，用阶段一积累的高价值用户创建 Lookalike Audience。种子用户标准：1000+ 完成关键行为（安装社交赌场 App、充值虚拟币、连续玩 7 天以上、参与多种游戏类型）。LAL 分层：1% 最相似→高价值转化，1-2%→测试新素材，2-5%→冲量。定向技巧：不用 Gambling 直接兴趣标签，改用赌场娱乐/体育爱好者/竞技游戏；iPhone 用户隐含更高可支配收入；晚间 7-10 点转化率最高；周末休闲玩家活跃；频次上限每日 3 次。",
+    "actions": [
+      "先跑社交博彩 App Install 积累种子用户——不要一上来就切真钱转化。",
+      "种子用户达到 1000+ 且完成关键行为后再创建 LAL——样本量不够 LAL 质量差。",
+      "用设备类型作为隐含收入指标（iPhone → 更高可支配收入）。",
+      "每个主要地区单独建立种子受众——不同地区用户行为差异显著。"
+    ],
+    "risk": "过早切真钱转化会导致广告被拒（没有牌照的情况下），或成本极高（冷启动直接跑真钱转化）。社交博彩阶段需要耐心积累数据，不要急于变现。注意合法牌照要求——没有目标市场牌照就不能跑真钱广告。",
+    "source_urls": [
+      "https://affninja.com/zh-CN/social-casino-ads/",
+      "https://partnerkin.com/en/blog/publications/igaming-facebook"
+    ],
+    "keywords": "社交博彩漏斗 SCG到RMG Lookalike Audience 种子用户 分层投放 获客路径 数据积累 转化变现"
+  },
+  {
+    "category": "风控与踩坑库",
+    "category_key": "risk_playbook",
+    "title": "AB 跳有三代技术演进，每一代都有不可修复的致命缺陷",
+    "question": "AB 跳的 Cloaking 技术经历了哪些演进？现在还能用吗？",
+    "scenario": "团队在研究 AB 跳技术链条时，需要理解不同代技术的原理和各自的致命弱点，以便做风险判断。",
+    "diagnosis": "AB 跳经历了三代技术演进。第一代纯前端 JS 检测（2016-2020）：JS 在浏览器端采集指纹→判断 Bot 或真人→替换页面。致命缺陷：审核爬虫如果不执行 JS，看到的就是原始黑页源码；如果执行 JS，就能捕获替换后的 DOM。完全是掩耳盗铃。第二代服务端 API 调用（2020-2024）：服务器提取 IP/UA/Referer→调用第三方 Cloak API→根据结果返回白页或黑页。致命缺陷：数据外泄给第三方、API 延迟不可控、服务端能获取的参数太少（住宅 IP + 真实浏览器 UA → 三个信号都正常 → 误放行）、静态 IP 黑名单迅速过时。第三代自托管+AI 风控+三层交叉验证（2024-2026）：本地 AI 风控→UA 协议指纹匹配→前端 JS 指纹→三层全过才放行。致命缺陷不是技术而是逻辑——越精准越暴露，越隐蔽越不准。",
+    "actions": [
+      "评估客户或样本的 AB 跳链路时，先判断属于哪一代技术——代际越低风险越高。",
+      "第一代（JS 检测）的样本直接标记为高风险，因为审核爬虫很容易发现。",
+      "第三代虽然技术上最精密，但逻辑悖论仍存在——不能作为承接依据。",
+      "无论哪一代，如果客户无法解释分流规则且无法提供审计日志，标记为不可承接。"
+    ],
+    "risk": "三代技术的共同本质都是'向审查员隐藏真实内容'。技术越精细只能延长存活时间，不能解决合规根本问题。2026 年 Meta 的多视角抓取 + Pixel 遥测 + 住宅 IP 审查 + 连续再审查已经覆盖了所有代际的对抗手段。",
+    "source_urls": [
+      "https://www.cnblogs.com/wuxiangdun/articles/19816113",
+      "https://cloaking.app/guides/how-cloaking-works/",
+      "https://deepclick.com/resources/blog/server-side-vs-client-side-cloaking/"
+    ],
+    "keywords": "AB跳三代演进 JS检测 服务端API 自托管AI 三层交叉验证 Cloaker 致命缺陷 逻辑悖论"
+  },
+  {
+    "category": "风控与踩坑库",
+    "category_key": "risk_playbook",
+    "title": "AB 跳有五种实现方式，每种都有对应检测手段",
+    "question": "AB 跳具体怎么实现的？302 跳转、PHP Include、iframe、JS 替换、同域双库有什么区别？",
+    "scenario": "团队在逆向分析 AB 跳样本时需要识别具体实现方式，以便判断检测难度和风险等级。",
+    "diagnosis": "五种实现方式各有致命弱点。302 重定向：Bot→302 到白页 URL，真人→302 到黑页 URL。最简单但审查员能看到跳转链，URL 变更是此地无银。PHP Include：同一 URL，服务器端条件判断后 include 不同文件。URL 不变但服务器能获取的信号有限。iframe 嵌入：白页做壳，iframe 加载黑页。黑页在沙箱中但 Pixel 事件不完整，且爬虫可能遍历 iframe src。JS DOM 替换：先展示白页→异步检测→通过后 innerHTML 替换为黑页。Headless 渲染会捕获替换后的 DOM。同域双库：同一域名不同数据库渲染不同内容。最隐蔽但架构最复杂，逻辑缺陷仍然存在。判定标准不是技术实现，而是'审查员看到的内容是否与同条件的真实用户一致'。",
+    "actions": [
+      "分析样本时记录具体实现方式：看 HTML 源码有无 JS 检测→第一代；看网络请求是否调第三方 API→第二代。",
+      "检查 URL 是否在访问过程中变化→302 跳转；检查页面有无 iframe→iframe 模式。",
+      "多视角抓取时特别关注 PHP Include 和同域双库——它们 URL 不变，需要对比 HTML 结构。",
+      "JS DOM 替换的样本需要截图记录替换前后的 DOM 变化作为证据。"
+    ],
+    "risk": "不同实现方式的检测难度不同，但 Meta 现在的多视角+Headless 渲染+Pixel 遥测组合已经覆盖了所有方式。同域双库虽然最隐蔽，但行为队列分析和基础设施关联最终仍会暴露。",
+    "source_urls": [
+      "https://deepclick.com/resources/blog/server-side-vs-client-side-cloaking/",
+      "https://www.cnblogs.com/wuxiangdun/articles/19816113"
+    ],
+    "keywords": "302跳转 PHP Include iframe嵌入 JS DOM替换 同域双库 AB跳实现方式 跳转链 页面一致性"
+  },
+  {
+    "category": "风控与踩坑库",
+    "category_key": "risk_playbook",
+    "title": "Meta 检测 AB 跳用六种手段，不需要知道你的规则就能发现你",
+    "question": "Meta 和 Google 具体是怎么检测 AB 跳和 Cloaking 的？有什么手段？",
+    "scenario": "团队需要理解平台的检测方法论，以便评估 AB 跳项目的存活概率和被检测的时间窗口。",
+    "diagnosis": "Meta/Google 用六种正交手段验证'同一 URL 是否对不同人展示了不同内容'。手段一多视角抓取：同一 URL 从机房 IP+Headless、住宅 IP+真实浏览器、移动运营商+真实手机等五个视角同时抓取→diff 内容→差异即 Cloaking 证据。手段二 Pixel 遥测比对：记录审核时爬虫看到的内容 vs 真实用户点击后 Pixel 回传的行为模式→内容不匹配行为→触发调查。手段三连续再审查：Day1 审核通过→Day3 从住宅 IP 再抓→看到黑页→与 Day1 不一致→标记。手段四用户举报回溯：用户举报→调审核截图 vs 用户截图→发现不一致→证据确凿。手段五基础设施关联：域名历史、同 IP 站点、BM 关联、Pixel 关联、支付关联→图关联。手段六 Chrome Safe Browsing（Google 独有）：30 亿+ Chrome 用户的真实浏览数据 vs Googlebot 抓取结果→不一致→Cloaking。",
+    "actions": [
+      "评估 AB 跳项目时，把六种检测手段作为风险清单逐项打分。",
+      "多视角抓取是最基础的检测——如果客户样本在多视角下不一致，已经触发红线。",
+      "Pixel 遥测是很多运营者忽略的——即使没有前端 Pixel，CAPI 服务端回传和用户行为模式都能暴露。",
+      "基础设施污染是不可逆的——旧域名/IP/BM/Pixel 的历史问题会牵连新账号。"
+    ],
+    "risk": "六种手段不是独立的是正交的。通过一种不代表安全——Meta 会交叉验证。而且不需要知道你的分流规则是什么，只需要观察到你存在与审查特征相关的差异。这是 Cloaking 在逻辑层面无法防御的根本原因。",
+    "source_urls": [
+      "https://deepclick.com/resources/blog/ad-cloaking-vs-url-cloaking-policy-line-2026/",
+      "https://deepclick.com/resources/blog/facebook-cloaking-guide-2026/"
+    ],
+    "keywords": "多视角抓取 Pixel遥测 连续再审查 用户举报 基础设施关联 Chrome Safe Browsing 六种检测手段 正交验证"
+  },
+  {
+    "category": "风控与踩坑库",
+    "category_key": "risk_playbook",
+    "title": "AB 跳的逻辑悖论：越精准越暴露，越隐蔽越不准",
+    "question": "AB 跳在逻辑上为什么做不成？不是技术问题是什么问题？",
+    "scenario": "团队在和客户或老板解释 AB 跳不可行时，需要超越'技术对抗'层面的论证，给出逻辑层面的根因。",
+    "diagnosis": "AB 跳存在一个逻辑层面的无解悖论。要准确判断访客是不是 Meta 审查员→需要采集尽可能多的访客指纹信号→但这些采集代码运行在访客的浏览器/服务器上→Meta 审查员可以看到这些采集代码→发现'正在识别审查员'的代码本身就是违规证据。如果隐藏采集代码（全服务端执行）→能采集的信号变少→判断准确率下降→要么漏放审查员（被封），要么误拦真实用户（损失转化）。这是一个不可打破的循环：越精准越暴露，越隐蔽越不准。这就是为什么无论第几代技术、无论 Cloaker 多么精密，AB 跳在逻辑上就是不可行的——这个悖论不会随着技术进步而消失。",
+    "actions": [
+      "给非技术决策者解释 AB 跳风险时，用这个逻辑悖论代替技术细节。",
+      "一句话：如果系统能准确识别审查员，那审查员也能看到这个系统的存在。",
+      "把这个悖论作为评估 AB 跳项目的核心风险假设——不是技术对抗能不能赢，是逻辑上就不可能赢。",
+      "如果客户坚持 AB 跳可行，请他们解释如何在这个悖论下证明可持续性。"
+    ],
+    "risk": "很多运营者认为技术升级可以解决检测问题——他们不理解悖论的本质不是某一条检测规则，而是检测方和规避方在信息对称性上的根本不对等。平台永远是信息的优势方（能看到全量流量、能反查历史、能跨平台关联）。",
+    "source_urls": [],
+    "keywords": "AB跳逻辑悖论 无解循环 越精准越暴露 信息不对称 不可持续性 决策论证 根因分析"
+  },
+  {
+    "category": "风控与踩坑库",
+    "category_key": "risk_playbook",
+    "title": "AB 跳各平台存活时间：Meta/Google 30 天内接近 100% 检出",
+    "question": "不同平台上 AB 跳能存活多久？有没有具体数据？",
+    "scenario": "团队需要量化评估 AB 跳项目在不同平台上的风险窗口，为商业决策提供数据支撑。",
+    "diagnosis": "2026 年的行业数据：Google Ads 检测手段极强（Googlebot + Chrome 数据 + 人工 + 再审查 + Safe Browsing），典型存活时间几天到 2 周，30 天检测率接近 100%。Meta（Facebook/Instagram）同样极强（多视角 + Pixel 遥测 + 住宅 IP + 图关联 + 人工），存活几天到 4 周，30 天检测率接近 100%。TikTok Ads 检测手段强（真实设备农场 + 人工 + 再审查），存活 1-4 周，检测率高。Microsoft Ads 检测手段中等，存活 2-8 周，检测率中等。关键趋势：存活时间在所有平台上都在急剧缩短。2024 年还能活 2-6 个月，2026 年已缩短到几天到 4 周。来源：DeepClick 2026 行业报告明确声明'white-page/black-page cloaking has a near-100% detection rate within 30 days of launch'。",
+    "actions": [
+      "评估 AB 跳项目的 ROI 时，以最乐观的 4 周存活期为上限做财务建模。",
+      "Google Ads 的检测最强——因为 Chrome 的 Safe Browsing 数据是独家优势。",
+      "Microsoft Ads 虽然审查较松，但不应作为主力平台——检测能力也在快速提升。",
+      "把这些数据作为客户风险披露的一部分——让客户签署知情书确认理解 30 天检出风险。"
+    ],
+    "risk": "很多运营者被'存活了几个月'的个例误导，以为有长期可行性。实际上随着平台检测持续升级，存活时间曲线是单向下降的。过去的表现不能预测未来的窗口。",
+    "source_urls": [
+      "https://deepclick.com/resources/blog/ad-cloaking-vs-url-cloaking-policy-line-2026/",
+      "https://wevion.ai/en/blog/cloaking-facebook-ads-risks-2026/"
+    ],
+    "keywords": "AB跳存活时间 各平台检测率 Google Meta TikTok 30天检出率 风险窗口 接近100% DeepClick报告"
+  },
+  {
+    "category": "复盘案例库",
+    "category_key": "review_cases",
+    "title": "AB 跳检测实操：六种方法教你验证页面是否在分流",
+    "question": "怎么用技术手段验证一个广告落地页是否在做 AB 跳？",
+    "scenario": "团队作为安全研究者或广告验证方，需要实际测试一个落地页是否存在 Cloaking 行为。",
+    "diagnosis": "实用六种检测方法。1) 双 IP 抓取对比：机房 IP 和住宅代理 IP 分别抓取→diff HTML/DOM/截图→差异即 Cloaking。2) 双 UA 抓取对比：facebookexternalhit/1.1 UA vs 标准 Chrome UA→diff。3) 行为模拟对比：Puppeteer 模拟真人操作（移动鼠标、滚动、停留）vs curl 直接 fetch→差异即 JS 层 Cloaking。4) 时序分析：同一 URL 在 Day1/Day3/Day7 分别抓取→内容变化→动态切换。5) 基础设施映射：域名 whois→DNS A 记录→同 IP 的其他域名→SSL 证书 SAN 列表→发现关联网络。6) Pixel/追踪代码分析：提取页面中的 Facebook Pixel ID、GA ID、GTM 容器 ID→查这些 ID 的历史违规关联。实践中通常组合 2-3 种方法以达到最高检测置信度。",
+    "actions": [
+      "检测前先准备：一个机房 VPS + 一个住宅代理订阅（Bright Data/Smartproxy/IPRoyal $5-10/GB）。",
+      "最基础的检测（方法 1+2）只需 5 分钟：机房 IP + 假 UA 抓一次，住宅 IP + 真 UA 抓一次，对比结果。",
+      "截图是最重要的证据——保留完整页面截图、URL、时间戳、访问 IP 和 UA。",
+      "方法 5 用于发现 Cloaking 基础设施网络，方法 6 用于关联历史风险——两者结合可发现更多关联项目。"
+    ],
+    "risk": "检测时使用机房 IP 和 facebookexternalhit UA 可能被 Cloaker 识别并拦截→你看到的是白页→这说明 Cloaker 在工作。但如果用住宅 IP + 标准 Chrome UA，Cloaker 可能判断为真人→展示黑页。两个视角都看一遍，才能做出完整判断。注意在合法合规的前提下进行研究。",
+    "source_urls": [],
+    "keywords": "AB跳检测 双IP抓取 双UA抓取 行为模拟 时序分析 基础设施映射 Pixel分析 广告验证 实操方法"
+  }
+]
