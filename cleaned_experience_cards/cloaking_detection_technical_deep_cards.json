@@ -1,0 +1,249 @@
+[
+  {
+    "category": "技术落地库",
+    "category_key": "tech_execution",
+    "title": "网络层检测信号（TLS/JA4、TCP/p0f、HTTP/2）应当成流量一致性检查维度",
+    "question": "TLS JA4 指纹、TCP 栈指纹和 HTTP/2 SETTINGS 帧怎么用于广告验证和风控识别？",
+    "scenario": "逆向研究资料详细分析了 TLS ClientHello、JA3/JA4 哈希、TCP SYN 包的 OS 指纹（p0f/JA4T）、HTTP/2 SETTINGS 帧参数差异，团队需要把这些信号转成可用的检测框架。",
+    "diagnosis": "网络层信号的价值在于它们发生在 JS 执行之前，任何浏览器层面的伪装都无法修改。TLS JA4 可以区分 Chrome/BoringSSL vs Python/OpenSSL vs Node.js 的 TLS 栈；TCP 栈指纹（TTL、Window Size、MSS）可以识别真实 OS（Windows TTL=128 vs Linux TTL=64）；HTTP/2 SETTINGS 帧参数（MAX_CONCURRENT_STREAMS、INITIAL_WINDOW_SIZE）因浏览器引擎而异。这些信号组合可以判断：请求来源的协议栈是否与声称的浏览器一致。不一致就是异常信号。",
+    "actions": [
+      "把网络层检测整理为 JA4 一致性、TCP OS 一致性、HTTP/2 参数一致性和 Client Hints 一致性四个检查项。",
+      "当 JA4 显示 Linux + UA 声称 Windows 时，标记为协议栈不一致。",
+      "当 TCP TTL=64（Linux）但声称 macOS/Windows 时，标记为 OS 层异常。",
+      "研究时使用 tls.peet.ws、BrowserLeaks TLS 测试、Wireshark 抓包验证。"
+    ],
+    "risk": "网络层信号是检测方握有优势的维度——TLS 发生在页面加载前，JS 无法修改。但单独依赖某一层会产生误判（如 curl_cffi 可以完美模拟 Chrome 的 TLS 指纹）。真正有效的判断需要网络层 + 环境层 + 行为层三点交叉。",
+    "source_urls": [
+      "https://blog.crawlex.net/blog/tls-fingerprinting-ja3-to-ja4/",
+      "https://blog.crawlex.net/blog/p0f-passive-os-fingerprinting/",
+      "https://dev.to/romclerix/how-we-reverse-engineered-a-tls-fingerprinting-system-3o6d"
+    ],
+    "keywords": "JA4 TLS指纹 JA4T TCP指纹 p0f HTTP/2 SETTINGS Client Hints 网络层检测 协议栈一致性 流量识别"
+  },
+  {
+    "category": "技术落地库",
+    "category_key": "tech_execution",
+    "title": "QUIC/HTTP3 指纹是 2026 年新前线，未升级到 HTTP/3 本身就是 Bot 信号",
+    "question": "QUIC 和 HTTP/3 的指纹检测和 HTTP/2 有什么不同？对广告验证有什么用？",
+    "scenario": "资料显示 HTTP/3 已占互联网约 35% 流量，且真实浏览器会自动从 HTTP/2 升级到 HTTP/3（通过 Alt-Svc），但大多数爬虫和自动化工具是 HTTP/2-only。",
+    "diagnosis": "QUIC 指纹在 HTTP/2 之上增加了新信号：传输参数（initial_max_data，Chrome 15MB vs Firefox 25MB vs Go quic-go 1MB）、0-RTT 会话恢复（强人类信号，Bot 极少表现）、连接迁移（WiFi→蜂窝网络切换，Headless 无法实现）、Alt-Svc 升级路径（真实浏览器会升级，Bot 不会）。关键判断：一个声称是 Chrome 但从未使用 HTTP/3 的客户端本身就是异常信号。",
+    "actions": [
+      "检查广告落地页的服务器日志中是否存在 HTTP/3 流量。",
+      "如果一个广告渠道的流量全是 HTTP/2、零 HTTP/3，标记为异常流量来源。",
+      "QUIC 传输参数中的 initial_max_data 值可以区分 Chrome/Firefox vs Python/Go 库。",
+      "把 Alt-Svc 升级比例作为流量质量的辅助指标。"
+    ],
+    "risk": "HTTP/3 检测在反 Bot 产品中尚未达到 HTTP/2 的覆盖水平（这是 2026 年的部署差距，不是技术差距）。但一旦头部的 CDN/反 Bot 厂商将 QUIC 传输参数从采集切换到打分，将成为第六道防线。",
+    "source_urls": [
+      "https://blog.crawlex.net/blog/http3-quic-fingerprinting/",
+      "https://scrapfly.io/blog/posts/http2-http3-fingerprinting-guide",
+      "https://github.com/scottgal/stylobot/blob/main/src/Mostlylucid.BotDetection/docs/http3-fingerprinting.md"
+    ],
+    "keywords": "QUIC HTTP/3 Alt-Svc 0-RTT 连接迁移 传输参数 initial_max_data 流量质量 协议升级"
+  },
+  {
+    "category": "技术落地库",
+    "category_key": "tech_execution",
+    "title": "浏览器环境指纹（Canvas/WebGL/Audio/字体/硬件）要做一致性校验而非单一信号判断",
+    "question": "Canvas、WebGL、AudioContext、字体和硬件参数这些浏览器指纹，怎么用于判断用户环境是否异常？",
+    "scenario": "逆向资料详细分析了各指纹信号的熵值、检测原理、防检测浏览器的盲区测试数据，团队需要把这些信号整合到异常环境识别框架中。",
+    "diagnosis": "2026 年各指纹信号的现状：Canvas 指纹约 16 bits（Chrome 可用，Firefox/Brave 加噪）；WebGL 渲染器是 Bot 检测的黄金信号——Headless 返回 SwiftShader/llvmpipe 而非真实 GPU；AudioContext 是 2026 年最大的检测盲区——跨 Session 持久，大多数防检测浏览器不处理（因为需要 Fork Chromium 在 C++ 层修改音频管线）；字体枚举可通过 measureText 间接检测；硬件参数的组合合理性比单一值更重要（声称 RTX 3080 + 2 核 CPU → 不存在这种配置）。核心原则：单一信号可能是假阳性，多信号交叉验证才是可靠判断。",
+    "actions": [
+      "把环境指纹整理为 WebGL 渲染器、Canvas 渲染输出、AudioContext 波形、字体列表、硬件组合合理性五个检查维度。",
+      "WebGL 出现 SwiftShader/llvmpipe → 服务器/VPS 环境 → 标记异常。",
+      "AudioContext 哈希跨 Session 不变但声称不同设备 → 同一设备伪装。",
+      "硬件组合出现 16 核 + 4GB RAM 或 RTX 3080 + 2 核 CPU → 不存在这种物理配置 → 标记伪造。",
+      "字体列表与声称的 OS 不匹配（如 macOS + Calibri/Segoe UI）→ 标记异常。"
+    ],
+    "risk": "防检测浏览器可以伪造 Canvas 和 WebGL 渲染器字符串，但一般不能完美伪造 Canvas 渲染输出、AudioContext 波形和字体度量。这些物理层的差异是无法从 JS 层面完全掩盖的。但如果只依赖一个信号做判断（如只看 WebGL 字符串），防检测浏览器可以轻松伪造。",
+    "source_urls": [
+      "https://webdecoy.com/blog/browser-fingerprinting-2026-what-still-works/",
+      "https://justbrowser.app/blog/audio-font-hardware-fingerprinting-overlooked",
+      "https://ipasis.com/blog/detecting-headless-chrome-webgl-worker-threads",
+      "https://alexi.sh/posts/browser-fingerprinting-state-art-2026"
+    ],
+    "keywords": "Canvas指纹 WebGL AudioContext 字体枚举 硬件参数 SwiftShader 浏览器指纹 环境一致性 熵值"
+  },
+  {
+    "category": "技术落地库",
+    "category_key": "tech_execution",
+    "title": "行为生物识别（鼠标熵/键盘动态/滚动纹理）是 2026 年检测 Bot 的最强信号",
+    "question": "鼠标轨迹、键盘停留时间和滚动模式这些行为信号，为什么比浏览器指纹更难伪造？",
+    "scenario": "2026 年 Sentinel 和 Foil 的研究指出，行为层是当前获得区分能力而非失去区分能力的一层。UC Davis 2026 年 FP-Agent 论文验证了行为信号能区分 AI Agent 和真人。",
+    "diagnosis": "CDP 驱动的合成鼠标事件有可测量的特征：整数像素坐标、完美直线/完美贝塞尔曲线、每步间隔完全一致、香农熵接近零；真实鼠标有浮点精度、微曲率加自然噪声、非对称加速减速、1-16ms 随机分布的间隔。程序化键盘输入的 keydown-keyup 停留时间精确相等；真人每次按键停留时间有 50-200ms 的随机波动。程序化滚动是精确的 +100px 步进；真人有惯性衰减和力度不均匀。核心结论：大规模生成合理的假行为数据需要建真人行为模型，每会话每页面无限期运行——这个成本目前没有任何工具能解决。",
+    "actions": [
+      "在广告验证和异常流量识别中，把行为信号作为独立维度。",
+      "鼠标轨迹零 mousemove 事件但有提交/注册行为 → 自动化。",
+      "页面停留时间和交互深度的比值异常一致（如每个页面恰好 3 秒）→ 自动化。",
+      "多会话的行为模式高度相似（相同的操作节奏、顺序、间隔）→ Botnet。"
+    ],
+    "risk": "行为信号检测需要大量计算资源（每会话行为数据的采集和模型推理），且存在假阳性（触屏设备无鼠标、触控板用户的滚动纹理不同）。但作为多信号交叉验证中的一层，行为信号的区分价值在 2026 年正在上升而非下降。",
+    "source_urls": [
+      "https://sntlhq.com/blog/headless-browser-detection-2026",
+      "https://usefoil.com/learn/headless-browser-detection",
+      "https://arxiv.org/abs/2605.01247"
+    ],
+    "keywords": "行为生物识别 鼠标熵 键盘动态 滚动纹理 FP-Agent UC Davis 输入物理特征 香农熵 CDP合成事件"
+  },
+  {
+    "category": "技术落地库",
+    "category_key": "tech_execution",
+    "title": "FingerprintJS 开源版和 Pro 版的差异揭示了客户端指纹的根本局限",
+    "question": "FingerprintJS、CreepJS 和 BrowserLeaks 这些指纹检测工具能信任吗？它们怎么工作？",
+    "scenario": "团队想了解市面上浏览器指纹检测工具的内部原理，以便正确使用它们做广告验证和异常环境识别。",
+    "diagnosis": "FingerprintJS 开源版只是读取约 40 个浏览器属性 → MurmurHash3 非加密哈希 → 纯函数输出 visitorId。它没有 ML、没有服务端、没有模糊匹配，面对防检测浏览器的伪造指纹完全无法判断——因为它只是把浏览器给的答案哈希了一下。Pro 版的核心变化是：浏览器不再是最终权威——采集信号发送到 Fingerprint 服务端，服务端做模糊匹配 + 网络层信号（TLS、HTTP 头部、IP 信誉）验证。CreepJS 的独特价值是：它不假设浏览器说的是真话——它检测原型链篡改、全局污染、Canvas 一致性（主线程 vs Worker 线程）、toString 溯源、Proxy 检测等。核心洞察：开源版能回答\"这是什么设备\"，Pro 版能回答\"这是人还是 Bot\"；防指纹本身是一种指纹（Tor 的统一特征、Brave 的噪声模式本身可被检测）。",
+    "actions": [
+      "如果用 FingerprintJS 开源版做验证，理解它只能做设备标识，不能做 Bot 检测。",
+      "用 CreepJS（creepjs.org）检测异常环境：关注 lies score、原型链篡改标记、WebGL 渲染器。",
+      "用 BrowserLeaks（browserleaks.com）做全维度检查：TLS、HTTP/2、QUIC、Canvas、WebGL、字体。",
+      "验证环境一致性：TLS JA4 说的 OS = TCP 栈说的 OS = UA 声明的 OS = JS 环境指纹暗示的 OS？"
+    ],
+    "risk": "只依赖 JavaScript 层面的指纹检测（如只用 FingerprintJS 开源版）在面对防检测浏览器时基本无效。真正有效的检测必须结合网络层信号 + 服务端验证 + 行为分析。开源工具的简单哈希值不应该被当作 Bot 判断的唯一依据。",
+    "source_urls": [
+      "https://blog.crawlex.net/blog/fingerprintjs-internals/",
+      "https://creepjs.org/",
+      "https://browserleaks.com/",
+      "https://dev.to/octobrowser/how-anonymity-checkers-work-pixelscan-browserleaks-whoer-and-creepjs-5b37"
+    ],
+    "keywords": "FingerprintJS CreepJS BrowserLeaks 原型链篡改 防指纹即指纹 客户端指纹局限 服务端验证 lies score"
+  },
+  {
+    "category": "风控与踩坑库",
+    "category_key": "risk_playbook",
+    "title": "住宅代理 2026 年检测率已达 85%，不能再作为可靠隐身手段",
+    "question": "住宅代理 IP 还能有效隐藏身份吗？广告平台能检测到住宅代理吗？",
+    "scenario": "团队在评估广告验证、竞品情报收集或异常流量识别时，需要理解住宅代理被检测的可能性和手段。",
+    "diagnosis": "2026 年住宅代理的检测手段已从单一 IP 信誉发展为五层综合检测：TCP/IP 指纹 vs User-Agent OS 一致性（代理服务器的 OS ≠ 客户端的 OS）；网络时序分析（代理引入额外的 TCP 握手和 RTT 异常）；设备指纹 vs IP 变化模式（真人的指纹稳定+IP偶尔变化 vs Bot的指纹和IP都快速轮换）；行为模式异常（跨 IP 但行为签名高度相似）；Chrome Safe Browsing 海量数据（Google 能区分同一 IP 背后是真实单一用户还是被多人共享的代理节点）。ClickFortify 2026 年实测数据：机房代理检测率 99.5%、商业 VPN 95%、住宅代理 85%、移动代理 75%。住宅代理从 2023 年的 ~30% 可检测提升到 2026 年的 ~85%。",
+    "actions": [
+      "评估代理依赖类项目的可持续性时，应预期住宅代理检测率在未来 12-18 个月继续上升。",
+      "在广告验证中使用住宅代理时，同时匹配浏览器指纹、语言、时区和行为模式以降低被识别的概率。",
+      "如果发现流量源使用的 IP 全部来自已知代理 ASN/ISP 池，标记为代理流量风险。",
+      "把代理检测作为流量质量评估的独立维度，而非二元的\"可信/不可信\"。"
+    ],
+    "risk": "住宅代理检测率的快速上升说明代理基础设施本身正在失去匿名性。依赖代理做合规灰色区域操作的可持续性在急剧下降。同时，过度依赖 IP 信誉会误伤 CGNAT（运营商级 NAT）下的真实用户。",
+    "source_urls": [
+      "https://www.clickfortify.com/blog/proxy-detection-google-ads-protection",
+      "https://blog.crawlex.net/blog/p0f-passive-os-fingerprinting/"
+    ],
+    "keywords": "住宅代理 代理检测 机房代理 VPN检测 网络时序 TCP/IP指纹 Chrome Safe Browsing 流量质量"
+  },
+  {
+    "category": "技术落地库",
+    "category_key": "tech_execution",
+    "title": "智能落地页是 Cloaking 的唯一合规替代方案——四组件架构",
+    "question": "如果不能在审核员和用户之间切换内容，但又需要个性化和多地区适配，应该怎么设计落地页？",
+    "scenario": "业务需要在不同地区展示不同的合规内容（GDPR、CCPA、本地货币），或根据设备类型、流量来源做适配，但担心被平台判定为 Cloaking。",
+    "diagnosis": "智能落地页和 Cloaking 在架构上看起来相似，但政策含义完全不同。区别在四个组件：1) 上下文解析器——只提取用户可感知的信号（设备、地区、语言、来源、UTM），不提取 Bot 检测信号作为分流依据；2) 变体目录——每个变体都独立合规，版本化管理，携带审批记录；3) 决策引擎——确定性规则，相同上下文总是返回相同变体，可重现；4) 审计日志+重放——每个请求记录 context+decision+variant_id，保留至少 90 天。唯一判定标准：当平台审查员爬你的落地页时，看到的内容是否与真实用户（同一地区、同一设备）看到的完全一致。是就是合法分流，否就是 Cloaking。",
+    "actions": [
+      "用四组件检查清单评估现有落地页架构：上下文解析器、变体目录、决策引擎、审计日志是否齐全。",
+      "确保每个变体独立能通过平台审核——把每个变体单独跑一次审核检查清单。",
+      "审查员 IP 白名单永远指向真实内容——Bot 过滤只过滤第三方爬虫，不过滤平台审查员。",
+      "当被平台标记时，提供变体目录+规则集+决策日志作为申诉证据。"
+    ],
+    "risk": "缺少审计日志或变体合规审批记录的\"智能落地页\"实际上是 Cloaking——只是换了个名字。四组件中缺任何一个，都无法在审核纠纷中自证清白。",
+    "source_urls": [
+      "https://deepclick.com/resources/blog/cloaking-vs-smart-landing-pages/",
+      "https://deepclick.com/resources/blog/ad-cloaking-vs-url-cloaking-policy-line-2026/"
+    ],
+    "keywords": "智能落地页 Cloaking替代 合规分流 四组件架构 变体目录 审计日志 决策引擎 Geo路由 个性化"
+  },
+  {
+    "category": "复盘案例库",
+    "category_key": "review_cases",
+    "title": "Meta 2026 年 2 月法律行动：Cloaking 从政策违规升级为法律问题",
+    "question": "Meta 对 Cloaking 的最新执法力度有多大？有哪些真实案例？",
+    "scenario": "团队在评估灰产链路的可持续性风险时，需要了解平台方的真实执法行动和后果。",
+    "diagnosis": "2026 年 2 月 26 日 Meta 官方公告的关键行动：1) 起诉巴西和中国多名使用虚假名人代言+Cloaking 的广告主；2) 起诉越南广告主 Lý Văn Lâm——使用 Cloaking 推送虚假品牌折扣广告，用户被诱导填写信用卡信息后商品未发货+被持续扣费（订阅欺诈）；3) 向 8 家前 Meta Business Partner 发出停止侵权函——这些顾问公开销售绕审服务、出租受信任账号；4) 配合英国和尼日利亚执法部门摧毁诈骗中心并逮捕 7 人；5) 跨平台打击：暂停支付方式、禁用关联账号、封锁域名、将情报共享给行业合作伙伴。Meta 原文确认\"持续投资新的 AI 技术检测 Cloaking\"。这些行动表明 Cloaking 已经从政策违规（封号）升级为法律追诉（起诉+跨境联合执法）。",
+    "actions": [
+      "在向客户说明灰产链路风险时，引用 Meta 2026 年法律行动作为平台方态度升级的直接证据。",
+      "评估项目可持续性时，将\"法律行动风险\"作为一个独立维度加入风险评估矩阵。",
+      "关注 Meta 对\"销售绕审服务\"的打击——不仅是使用者被查，销售者和中间人也在被追责。",
+      "把跨平台情报共享作为假设前提：被 Meta 标记的域名和支付方式可能被 Google/TikTok 同步拉黑。"
+    ],
+    "risk": "把平台政策违规仅当作\"封号风险\"会严重低估真实后果。2026 年的趋势是：政策违规 → 法律追诉 → 跨境联合执法 → 品牌域名支付方式全面封禁。",
+    "source_urls": [
+      "https://about.fb.com/news/2026/02/meta-takes-legal-action-against-scam-advertisers/"
+    ],
+    "keywords": "Meta法律行动 Cloaking诉讼 跨境执法 订阅欺诈 2026案例 法律后果 绕审服务 跨平台封禁"
+  },
+  {
+    "category": "复盘案例库",
+    "category_key": "review_cases",
+    "title": "Google Ads Circumventing Systems 恢复案例：正常站点也会被误判为 Cloaking",
+    "question": "Google Ads 被判定为 Circumventing Systems（Cloaking）还能恢复吗？正常站点为什么也会被误判？",
+    "scenario": "一个正常的 AI 辅导产品投放 Google Ads，突然收到 Account suspended for Circumventing Systems (cloaking)。团队需要理解被误判的原因和恢复路径。",
+    "diagnosis": "这个真实恢复案例揭示了六个常见的误判触发点：1) 死链（主导航和 Footer 中的失效链接导致用户和爬虫看到不同的旅程）；2) 安全警告（可疑文件、过期插件、混合内容触发安全扫描）；3) 误导性离站链接（某链接跳转内容与广告承诺不一致）；4) robots.txt 配置错误（不同 UA 规则不一致导致爬虫看到的内容 ≠ 用户体验）；5) 渲染异常（客户端路由导致首帧渲染时核心文案缺失——爬虫看到不完整页面）；6) 第三方追踪器（疑似 masked redirect 的点击追踪器被误判为跳转伪装）。恢复流程：安全加固 → 链接完整性修复 → robots.txt 重写 → 渲染修复 → 证据驱动的申诉（截图、diff、安全扫描报告、Search Console 报告）。结果：账户恢复。核心教训：即使没有故意 Cloaking，正常站点的技术问题也可能被平台判定为 Cloaking。",
+    "actions": [
+      "排查广告落地页的六个常见误判点：死链、安全警告、离站链接、robots.txt、渲染异常、第三方追踪器。",
+      "确保 Googlebot 和真实用户从广告链接进入后看到的 HTML 和关键内容一致。",
+      "robots.txt 显式声明每个 UA 的规则，避免\"最后一个 block 才生效\"的错误。",
+      "如果被误判，申诉不要只说\"我改了\"——要附带修复前后的截图、diff、安全扫描报告、Search Console 报告。"
+    ],
+    "risk": "被误判为 Cloaking 后直接放弃账户会损失广告资产和数据。但仓促提交申诉（没有完整证据）会浪费宝贵的申诉机会。Google 对 Circumventing Systems 的审核非常严格，需要完整的证据链。",
+    "source_urls": [
+      "https://aliraza.co/google-ads-circumventing-systems-cloaking-suspensiona-complete-recovery-case-study/"
+    ],
+    "keywords": "Google Ads Circumventing Systems Cloaking误判 账户恢复 死链 robots.txt 渲染异常 申诉证据 误判触发点"
+  },
+  {
+    "category": "风控与踩坑库",
+    "category_key": "risk_playbook",
+    "title": "防检测浏览器 11 款实测：最高检测置信度 0.96，全部可检测",
+    "question": "市面上的防检测浏览器真的能躲过检测吗？有没有实测数据？",
+    "scenario": "团队在评估异常环境风险时需要了解防检测浏览器的真实有效性——不仅看营销话术，还要看第三方的独立测试数据。",
+    "diagnosis": "WHOX 2026 年对 11 款防检测浏览器进行了 300+ 信号的全面实测（通过住宅代理排除 IP 因素）：AntiDetect 检测置信度 0.96、Fraudfox 0.93、AdsPower/Incogniton/OctoBrowser 约 0.82-0.85（脚本注入导致原型链完整性失败）、Dolphin Anty 约 0.80（UA/WebGL/Canvas 不一致）、GoLogin/Kameleo 约 0.76-0.78（网络层暴露：JA4+HTTP/2）、Undetectable 约 0.74、Multilogin Mimic 约 0.73（Canvas delta 可检测）。最致命的三类缺陷：1) 原型链完整性（C48）——11 款中 6 款直接挂，Object.defineProperty 覆盖产生自有属性而非继承属性 → hasOwnProperty 直接区分；2) 全局污染（C50）——管理脚本在 window 上留下非标准属性；3) 网络层（A05/A18/C12）——JA4/HTTP/2/TCP 三点交叉暴露真实 OS。GoLogin 2025 年公开承认：Neither Pixelscan nor iphey passed basic fingerprint checks when verifying GoLogin profiles。",
+    "actions": [
+      "评估依赖防检测浏览器的项目时，引用 WHOX 实测数据说明所有工具均可被检测。",
+      "检查网络层一致性（JA4 说的 OS = HTTP/2 参数暗示的浏览器 = UA 声称的浏览器）。",
+      "检查 JS 层原型链完整性（navigator.hasOwnProperty('platform') 应在真实浏览器中返回 false）。",
+      "把 Sentinel API（sntlhq.com）作为检测能力参考——目前唯一公开提供 antidetectBrowser 检测字段的商业 API。"
+    ],
+    "risk": "防检测浏览器的检测率正在从 2024 年的 20-40% 快速攀升到 2026 年的 72-96%。依赖这些工具的项目可持续性窗口在急剧缩短。即使是最低检测置信度的工具（0.72），在平台方的大规模审查中也会被识别。",
+    "source_urls": [
+      "https://whox.com/blog/antidetect-detection",
+      "https://sntlhq.com/blog/detect-antidetect-browsers-2026",
+      "https://usefoil.com/learn/anti-detect-browser-detection"
+    ],
+    "keywords": "防检测浏览器 WHOX实测 AdsPower Multilogin GoLogin 原型链完整性 网络层暴露 Sentinel 检测置信度"
+  },
+  {
+    "category": "技术落地库",
+    "category_key": "tech_execution",
+    "title": "Facebook Ad Library 爬虫架构：API 不覆盖商业广告，爬取需要完整浏览器舰队",
+    "question": "Facebook Ad Library 可以用来做竞品广告情报吗？API 能拉到商业广告数据吗？",
+    "scenario": "团队想搭建竞品广告监控系统，需要了解 Facebook Ad Library 的技术限制和真实的爬取成本。",
+    "diagnosis": "Facebook Ad Library API 有一个大多数人不知道的限制：官方 API 仅覆盖社会议题/选举/政治类广告和投放至欧盟的广告，不覆盖普通商业广告。要做竞品分析，唯一路径是从公开的 Ad Library 网页端爬取。但这触发了 Meta 的全套反爬系统：1) JS 渲染必需（广告不在初始 HTML 中，需 Playwright/Puppeteer）；2) TLS/HTTP/2 指纹检测（非浏览器的 HTTP 栈被拦截）；3) IP 信誉+频率限制（机房 IP 被限速）；4) 选择器随机化（CSS class 名定期变更，解析器需要自愈能力）。自建爬虫架构：Headless Browser Fleet + 住宅代理轮换池（至少几百个 IP）+ 防检测浏览器指纹 + 行为模拟层 + 自愈解析器 + 调度器。月成本估算：代理 $500-2000 + 浏览器基础设施 $200-500 + 解析器维护人力 → 总计 $1000-5000+/月。这也是为什么市面上的 Spy 工具（AdSpy/BigSpy/PowerAdSpy）有市场需求——自建成本远超订阅费。",
+    "actions": [
+      "明确需求：如果只需要政治广告数据 → 用官方 API；如果需要商业广告数据 → 准备接受爬虫的维护成本或购买 Spy 工具。",
+      "自建前评估：代理费用、浏览器基础设施成本、解析器维护的人力投入 vs 购买 Spy 工具订阅。",
+      "爬取时遵守 robots.txt 和频率限制，避免对 Ad Library 服务造成负担。",
+      "关注 Meta 对外部研究员广告库分析结果反馈给执法的公开声明——Spy 工具的数据本身也是平台的监测目标。"
+    ],
+    "risk": "自建 Ad Library 爬虫是持续性的工程投入（Meta 每改版一次布局，解析器就需要维护），不是一个周末脚本。同时，Meta 已明确表示外部研究员的广告库分析结果会直接反馈到执法系统。",
+    "source_urls": [
+      "https://dev.to/odeeb/building-a-facebook-ad-library-scraper-api-limits-and-the-real-approach-3bad",
+      "https://www.hyperfx.ai/blog/meta-ad-library-api-scraper-guide"
+    ],
+    "keywords": "Facebook Ad Library 广告情报 Spy工具 爬虫架构 住宅代理 官方API 商业广告 竞品监控 反爬系统"
+  },
+  {
+    "category": "技术落地库",
+    "category_key": "tech_execution",
+    "title": "广告位置验证实战工作流：单人单日可覆盖 20+ GEO",
+    "question": "怎么验证广告在不同国家和地区是否按预期展示？有哪些可操作的步骤？",
+    "scenario": "某品牌发现他们的\"家庭友好\"广告在德国的网站上跑到了赌博内容旁边且持续了 11 周——DSP 的品牌安全报告显示零违规，发布商服务器日志显示零违规。但用德国住宅 IP + 德国浏览器指纹加载页面，果然在赌博旁边。",
+    "diagnosis": "这是 2026 年广告验证的标准实战流程。关键点：VPN 只改 IP 不改指纹 → 发布商广告服务器看到\"德国 IP + 美国指纹\"→ 判定为游客或 VPN → 不展示本地广告或展示\"干净\"广告。正确做法是每个 GEO 创建独立的防检测浏览器 Profile——匹配当地的 OS、语言、时区、分辨率、字体包。操作流程：预热 2-3 分钟（浏览当地新闻网站，积累 Session 历史）→ 验证品牌落地页（语言/货币/创意是否正确）→ 检查程序化广告位置（截图记录位置、创意、内容安全性、竞品存在）→ 如果看不到广告 → 排查是否被发布商的 Bot 检测拦截（某些新闻网站拦截已知住宅代理子网，需要换移动代理）。成本：住宅代理 $5-10/GB，20-30 GEO 单人单日可完成。",
+    "actions": [
+      "为每个目标 GEO 创建独立的浏览器 Profile：匹配当地 Chrome 版本、OS、语言、时区、分辨率、字体包。",
+      "打开页面前先浏览当地网站 2-3 分钟做预热（避免像 Bot）。",
+      "截图记录一切：广告位置、创意内容、上下文内容、竞品广告。",
+      "如果看不到广告 → 检查是否有广告拦截扩展、指纹是否一致、代理 IP 子网是否被标记。",
+      "移动端验证需要移动代理（贵 3-4 倍）——某些发布商只能用移动 IP 访问。"
+    ],
+    "risk": "使用 VPN 而非指纹匹配的防检测浏览器做广告验证会导致看到与真实用户不同的内容（发布商识别并展示了\"干净\"广告）。自动化时要注意——Headless 验证容易被发布商的 Bot 检测拦截，建议先手动确认正确基线。",
+    "source_urls": [
+      "https://justbrowser.app/blog/ad-verification-antidetect-browser-workflow"
+    ],
+    "keywords": "广告验证 品牌安全 程序化广告 GEO验证 防检测浏览器 住宅代理 位置验证 竞品监测 广告展示验证"
+  }
+]
