@@ -7,6 +7,7 @@ from pathlib import Path
 from web_service import (
     check_auth,
     check_readiness,
+    check_supabase_status,
     handle_ask_payload,
     handle_feedback_payload,
     render_app_html,
@@ -262,6 +263,16 @@ class WebServiceTest(unittest.TestCase):
         self.assertEqual(status, 503)
         self.assertFalse(payload["ok"])
         self.assertIn("database not found", payload["error"])
+
+    def test_check_supabase_status_does_not_expose_secret_values(self):
+        status = check_supabase_status(event_sink=FakeEventSink())
+
+        self.assertTrue(status["ok"])
+        self.assertTrue(status["enabled"])
+        self.assertIn("url_configured", status)
+        self.assertIn("service_role_key_configured", status)
+        self.assertNotIn("service_role_key", status)
+        self.assertNotIn("SUPABASE_SERVICE_ROLE_KEY", status)
 
     def test_supabase_ask_payload_maps_to_interaction_events_without_secrets(self):
         table, payload = supabase_payload_for_event(
