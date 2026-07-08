@@ -12,7 +12,12 @@ from urllib.parse import urlparse
 from uuid import uuid4
 
 from rag_answer import answer_question, retrieve_context
-from supabase_events import SupabaseEventClient, record_supabase_event
+from supabase_events import (
+    DEFAULT_SUPABASE_PUBLISHABLE_KEY,
+    DEFAULT_SUPABASE_URL,
+    SupabaseEventClient,
+    record_supabase_event,
+)
 
 
 DEFAULT_DB_PATH = Path(__file__).parent / "output" / "30tian_chuhai.sqlite"
@@ -1051,13 +1056,19 @@ def check_readiness(db_path: str | Path) -> tuple[dict, int]:
 
 
 def check_supabase_status(event_sink: object | None = None) -> dict:
-    url_configured = bool(os.environ.get("SUPABASE_URL", "").strip())
+    url_configured = bool(os.environ.get("SUPABASE_URL", "").strip() or DEFAULT_SUPABASE_URL)
     service_role_key_configured = bool(os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip())
+    publishable_key_configured = bool(
+        os.environ.get("SUPABASE_ANON_KEY", "").strip()
+        or os.environ.get("SUPABASE_PUBLISHABLE_KEY", "").strip()
+        or DEFAULT_SUPABASE_PUBLISHABLE_KEY
+    )
     return {
         "ok": bool(event_sink),
         "enabled": bool(event_sink),
         "url_configured": url_configured,
         "service_role_key_configured": service_role_key_configured,
+        "publishable_key_configured": publishable_key_configured,
     }
 
 
