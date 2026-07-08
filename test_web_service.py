@@ -8,8 +8,10 @@ from web_service import (
     check_auth,
     check_readiness,
     check_supabase_status,
+    handle_admin_analytics,
     handle_ask_payload,
     handle_feedback_payload,
+    render_admin_html,
     render_app_html,
     render_index_html,
 )
@@ -19,9 +21,15 @@ from supabase_events import supabase_payload_for_event
 class FakeEventSink:
     def __init__(self):
         self.events = []
+        self.analytics = {"totals": {"questions": 1}, "recent_questions": []}
 
     def record_event(self, event):
         self.events.append(dict(event))
+
+    def fetch_admin_analytics(self, limit=20):
+        payload = dict(self.analytics)
+        payload["limit"] = limit
+        return payload
 
 
 class WebServiceTest(unittest.TestCase):
@@ -87,6 +95,14 @@ class WebServiceTest(unittest.TestCase):
         self.assertIn("烧钱没单怎么办", html)
         self.assertIn("半夜空烧怎么拦截", html)
         self.assertIn("Pixel/CAPI 回传怎么配置", html)
+
+    def test_render_admin_html_includes_analytics_app(self):
+        html = render_admin_html()
+
+        self.assertIn("Northstar Analytics", html)
+        self.assertIn("/api/admin/analytics", html)
+        self.assertIn("Authorization", html)
+        self.assertIn("recent_questions", html)
 
     def test_handle_ask_payload_requires_question(self):
         response, status = handle_ask_payload(
@@ -273,6 +289,19 @@ class WebServiceTest(unittest.TestCase):
         self.assertIn("service_role_key_configured", status)
         self.assertNotIn("service_role_key", status)
         self.assertNotIn("SUPABASE_SERVICE_ROLE_KEY", status)
+
+    def test_handle_admin_analytics_requires_event_sink(self):
+        response, status = handle_admin_analytics(event_sink=None)
+
+        self.assertEqual(status, 503)
+        self.assertIn("supabase", response["error"])
+
+    def test_handle_admin_analytics_returns_payload_from_event_sink(self):
+        response, status = handle_admin_analytics(event_sink=FakeEventSink(), limit=7)
+
+        self.assertEqual(status, 200)
+        self.assertEqual(response["totals"]["questions"], 1)
+        self.assertEqual(response["limit"], 7)
 
     def test_supabase_ask_payload_maps_to_interaction_events_without_secrets(self):
         table, payload = supabase_payload_for_event(
