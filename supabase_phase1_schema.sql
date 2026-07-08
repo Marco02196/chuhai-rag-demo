@@ -92,3 +92,79 @@ begin
       with check (true);
   end if;
 end $$;
+
+create or replace function public.northstar_admin_analytics(p_limit integer default 20)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  result jsonb;
+  safe_limit integer := greatest(1, least(coalesce(p_limit, 20), 50));
+begin
+  select jsonb_build_object(
+    'totals', jsonb_build_object(
+      'questions', (select count(*) from public.interaction_events),
+      'feedback_up', (select count(*) from public.feedback_events where feedback = 'up'),
+      'feedback_down', (select count(*) from public.feedback_events where feedback = 'down'),
+      'avg_elapsed_ms', (select coalesce(round(avg(elapsed_ms))::int, 0) from public.interaction_events where elapsed_ms is not null),
+      'avg_source_count', (select coalesce(round(avg(source_count), 1), 0) from public.interaction_events where source_count is not null)
+    ),
+    'by_category', coalesce((
+      select jsonb_agg(row_to_json(t) order by t.count desc)
+      from (
+        select coalesce(category_key, 'unknown') as category_key, count(*)::int as count
+        from public.interaction_events
+        group by coalesce(category_key, 'unknown')
+        order by count desc
+        limit 12
+      ) t
+    ), '[]'::jsonb),
+    'by_depth', coalesce((
+      select jsonb_agg(row_to_json(t) order by t.count desc)
+      from (
+        select coalesce(depth, 'unknown') as depth, count(*)::int as count
+        from public.interaction_events
+        group by coalesce(depth, 'unknown')
+        order by count desc
+        limit 8
+      ) t
+    ), '[]'::jsonb),
+    'recent_questions', coalesce((
+      select jsonb_agg(row_to_json(t) order by t.created_at desc)
+      from (
+        select request_id, left(question, 260) as question, category_key, depth, retrieval_limit, source_count, elapsed_ms, created_at
+        from public.interaction_events
+        order by created_at desc
+        limit safe_limit
+      ) t
+    ), '[]'::jsonb),
+    'low_source_questions', coalesce((
+      select jsonb_agg(row_to_json(t) order by t.created_at desc)
+      from (
+        select request_id, left(question, 260) as question, category_key, source_count, created_at
+        from public.interaction_events
+        where coalesce(source_count, 0) <= 1
+        order by created_at desc
+        limit 20
+      ) t
+    ), '[]'::jsonb),
+    'negative_feedback', coalesce((
+      select jsonb_agg(row_to_json(t) order by t.created_at desc)
+      from (
+        select request_id, answer_preview, created_at
+        from public.feedback_events
+        where feedback = 'down'
+        order by created_at desc
+        limit 20
+      ) t
+    ), '[]'::jsonb),
+    'generated_at', timezone('utc', now())
+  ) into result;
+
+  return result;
+end;
+$$;
+
+grant execute on function public.northstar_admin_analytics(integer) to anon;
