@@ -27,7 +27,7 @@ northstar_phase1_events_feedback_due_diligence
 ```text
 SUPABASE_URL=https://<project-ref>.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=<server-only service role key>
-SUPABASE_EVENT_TIMEOUT_SECONDS=2.5
+SUPABASE_EVENT_TIMEOUT_SECONDS=8
 ```
 
 Keep `SUPABASE_SERVICE_ROLE_KEY` server-side only. If these variables are not configured, the app keeps working and writes only the local JSONL event log.
