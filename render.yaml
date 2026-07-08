@@ -17,3 +17,9 @@ services:
         value: deepseek-chat
       - key: RAG_DB_PATH
         value: /app/output/30tian_chuhai.sqlite
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_EVENT_TIMEOUT_SECONDS
+        value: "2.5"
