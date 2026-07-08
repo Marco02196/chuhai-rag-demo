@@ -46,9 +46,34 @@ class SupabaseEventClient:
 
     def fetch_admin_analytics(self, limit: int = 20) -> dict:
         safe_limit = max(1, min(int(limit or 20), 50))
-        body = json.dumps({"p_limit": safe_limit}, ensure_ascii=False).encode("utf-8")
+        return self.call_rpc("northstar_admin_analytics", {"p_limit": safe_limit})
+
+    def create_knowledge_todo(
+        self,
+        *,
+        request_id: str,
+        question: str,
+        category_key: str | None = None,
+        source_count: int | None = None,
+        note: str | None = None,
+        priority: str = "medium",
+    ) -> dict:
+        return self.call_rpc(
+            "northstar_create_knowledge_todo",
+            {
+                "p_request_id": truncate_value(request_id, 120),
+                "p_question": truncate_value(question),
+                "p_category_key": truncate_value(category_key, 80),
+                "p_source_count": source_count,
+                "p_note": truncate_value(note, 500),
+                "p_priority": truncate_value(priority, 20) or "medium",
+            },
+        )
+
+    def call_rpc(self, name: str, payload: dict) -> dict:
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         request = urllib.request.Request(
-            f"{self.url}/rest/v1/rpc/northstar_admin_analytics",
+            f"{self.url}/rest/v1/rpc/{name}",
             data=body,
             method="POST",
             headers={
@@ -98,6 +123,7 @@ def supabase_payload_for_event(event: dict) -> tuple[str | None, dict]:
         return FEEDBACK_TABLE, {
             "request_id": truncate_value(event.get("request_id"), 120),
             "feedback": truncate_value(event.get("feedback"), 20),
+            "reason": truncate_value(event.get("reason"), 120) or None,
             "answer_preview": truncate_value(event.get("answer_preview"), 240),
             "created_at": event.get("created_at"),
         }
