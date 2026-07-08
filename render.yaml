@@ -18,7 +18,7 @@ services:
       - key: RAG_DB_PATH
         value: /app/output/30tian_chuhai.sqlite
       - key: SUPABASE_URL
-        sync: false
+        value: https://dxzptxgykrvciihixdbj.supabase.co
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
       - key: SUPABASE_EVENT_TIMEOUT_SECONDS
