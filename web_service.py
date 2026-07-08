@@ -1050,6 +1050,17 @@ def check_readiness(db_path: str | Path) -> tuple[dict, int]:
     return {"ok": True, "chunks": chunk_count, "chunks_fts": fts_count}, 200
 
 
+def check_supabase_status(event_sink: object | None = None) -> dict:
+    url_configured = bool(os.environ.get("SUPABASE_URL", "").strip())
+    service_role_key_configured = bool(os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip())
+    return {
+        "ok": bool(event_sink),
+        "enabled": bool(event_sink),
+        "url_configured": url_configured,
+        "service_role_key_configured": service_role_key_configured,
+    }
+
+
 def handle_ask_payload(
     payload: dict,
     db_path: str | Path,
@@ -1123,6 +1134,9 @@ class RAGRequestHandler(BaseHTTPRequestHandler):
         if path == "/readyz":
             response, status = check_readiness(getattr(self.server, "db_path"))
             self.send_json(response, status=status)
+            return
+        if path == "/supabasez":
+            self.send_json(check_supabase_status(getattr(self.server, "event_sink", None)))
             return
         if path in {"/", "/index.html"}:
             body = render_index_html().encode("utf-8")
