@@ -12,6 +12,15 @@ from web_service import (
     render_app_html,
     render_index_html,
 )
+from supabase_events import supabase_payload_for_event
+
+
+class FakeEventSink:
+    def __init__(self):
+        self.events = []
+
+    def record_event(self, event):
+        self.events.append(dict(event))
 
 
 class WebServiceTest(unittest.TestCase):
@@ -141,6 +150,31 @@ class WebServiceTest(unittest.TestCase):
         self.assertNotIn("authorization", records[0])
         self.assertNotIn("api_key", records[0])
 
+    def test_handle_ask_payload_sends_event_to_optional_sink(self):
+        sink = FakeEventSink()
+        contexts = [
+            {
+                "source_number": 1,
+                "id": "a",
+                "text": "对应动作：Kill",
+                "metadata": {"title": "放量与止损看板", "category": "投放策略库", "source_path": "x.csv"},
+            }
+        ]
+
+        response, status = handle_ask_payload(
+            {"request_id": "req-supa", "question": "ROI 低怎么办", "category_key": "ad_strategy", "limit": 2, "use_llm": False},
+            db_path="kb.sqlite",
+            retriever=lambda **kwargs: contexts,
+            answerer=lambda question, contexts, use_llm: "应该先止损。[来源 1]",
+            event_sink=sink,
+        )
+
+        self.assertEqual(status, 200)
+        self.assertEqual(response["request_id"], "req-supa")
+        self.assertEqual(sink.events[0]["event"], "ask")
+        self.assertEqual(sink.events[0]["request_id"], "req-supa")
+        self.assertIn("created_at", sink.events[0])
+
     def test_handle_ask_payload_passes_depth_to_answerer(self):
         contexts = [
             {
@@ -202,6 +236,19 @@ class WebServiceTest(unittest.TestCase):
         self.assertEqual(record["request_id"], "req-1")
         self.assertEqual(record["feedback"], "up")
 
+    def test_handle_feedback_payload_sends_event_to_optional_sink(self):
+        sink = FakeEventSink()
+        response, status = handle_feedback_payload(
+            {"request_id": "req-1", "feedback": "down", "answer_preview": "不够具体"},
+            log_path=None,
+            event_sink=sink,
+        )
+
+        self.assertEqual(status, 200)
+        self.assertTrue(response["ok"])
+        self.assertEqual(sink.events[0]["event"], "feedback")
+        self.assertEqual(sink.events[0]["feedback"], "down")
+
     def test_handle_feedback_payload_validates_feedback(self):
         response, status = handle_feedback_payload({"request_id": "req-1", "feedback": "maybe"}, log_path=None)
 
@@ -215,6 +262,47 @@ class WebServiceTest(unittest.TestCase):
         self.assertEqual(status, 503)
         self.assertFalse(payload["ok"])
         self.assertIn("database not found", payload["error"])
+
+    def test_supabase_ask_payload_maps_to_interaction_events_without_secrets(self):
+        table, payload = supabase_payload_for_event(
+            {
+                "event": "ask",
+                "request_id": "req-1",
+                "question": "ROI 低怎么办",
+                "category_key": "ad_strategy",
+                "depth": "standard",
+                "limit": 3,
+                "use_llm": True,
+                "elapsed_ms": 1234,
+                "answer_length": 88,
+                "source_count": 2,
+                "source_titles": ["止损卡"],
+                "source_categories": ["投放策略库"],
+                "authorization": "Bearer secret",
+                "api_key": "secret",
+                "created_at": "2026-07-08T00:00:00Z",
+            }
+        )
+
+        self.assertEqual(table, "interaction_events")
+        self.assertEqual(payload["retrieval_limit"], 3)
+        self.assertEqual(payload["source_titles"], ["止损卡"])
+        self.assertNotIn("authorization", payload)
+        self.assertNotIn("api_key", payload)
+
+    def test_supabase_feedback_payload_maps_to_feedback_events(self):
+        table, payload = supabase_payload_for_event(
+            {
+                "event": "feedback",
+                "request_id": "req-1",
+                "feedback": "up",
+                "answer_preview": "有帮助",
+            }
+        )
+
+        self.assertEqual(table, "feedback_events")
+        self.assertEqual(payload["feedback"], "up")
+        self.assertEqual(payload["answer_preview"], "有帮助")
 
 
 if __name__ == "__main__":
