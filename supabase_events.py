@@ -44,6 +44,22 @@ class SupabaseEventClient:
             return
         self.insert(table, payload)
 
+    def fetch_admin_analytics(self, limit: int = 20) -> dict:
+        safe_limit = max(1, min(int(limit or 20), 50))
+        body = json.dumps({"p_limit": safe_limit}, ensure_ascii=False).encode("utf-8")
+        request = urllib.request.Request(
+            f"{self.url}/rest/v1/rpc/northstar_admin_analytics",
+            data=body,
+            method="POST",
+            headers={
+                "apikey": self.api_key,
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json; charset=utf-8",
+            },
+        )
+        with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+            return json.loads(response.read().decode("utf-8") or "{}")
+
     def insert(self, table: str, payload: dict) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         request = urllib.request.Request(
