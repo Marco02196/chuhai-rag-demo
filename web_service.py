@@ -24,6 +24,7 @@ DEFAULT_DB_PATH = Path(__file__).parent / "output" / "30tian_chuhai.sqlite"
 DEFAULT_LOG_PATH = Path(__file__).parent / "output" / "interaction_events.jsonl"
 DEFAULT_UI_PATH = Path(__file__).parent / "web_ui.html"
 DEFAULT_APP_UI_PATH = Path(__file__).parent / "web_app.html"
+DEFAULT_ADMIN_UI_PATH = Path(__file__).parent / "web_admin.html"
 EVENT_LOG_LOCK = Lock()
 
 
@@ -998,6 +999,10 @@ if(saved)load();
 </html>"""
 
 
+def render_admin_html() -> str:
+    return DEFAULT_ADMIN_UI_PATH.read_text(encoding="utf-8")
+
+
 def utc_timestamp() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
@@ -1080,6 +1085,7 @@ def handle_feedback_payload(
             "event": "feedback",
             "request_id": request_id,
             "feedback": feedback,
+            "reason": truncate_text(str(payload.get("reason") or ""), 120),
             "answer_preview": truncate_text(str(payload.get("answer_preview") or ""), 240),
         },
         event_sink=event_sink,
@@ -1156,6 +1162,30 @@ def handle_admin_analytics(event_sink: object | None, limit: int = 20) -> tuple[
     except Exception as exc:
         print(f"admin_analytics_error type={type(exc).__name__}", flush=True)
         return {"error": "analytics unavailable"}, 503
+
+
+def handle_admin_todo_payload(payload: dict, event_sink: object | None) -> tuple[dict, int]:
+    if not event_sink:
+        return {"error": "supabase event sink is not enabled"}, 503
+    question = str(payload.get("question") or "").strip()
+    if not question:
+        return {"error": "question is required"}, 400
+    try:
+        source_count = payload.get("source_count")
+        if source_count not in (None, ""):
+            source_count = int(source_count)
+        response = event_sink.create_knowledge_todo(
+            request_id=str(payload.get("request_id") or "").strip(),
+            question=question,
+            category_key=str(payload.get("category_key") or "").strip() or None,
+            source_count=source_count,
+            note=str(payload.get("note") or "").strip() or None,
+            priority=str(payload.get("priority") or "medium").strip() or "medium",
+        )
+        return {"ok": True, "todo": response}, 200
+    except Exception as exc:
+        print(f"admin_todo_error type={type(exc).__name__}", flush=True)
+        return {"error": "todo unavailable"}, 503
 
 
 def handle_ask_payload(
@@ -1277,7 +1307,8 @@ class RAGRequestHandler(BaseHTTPRequestHandler):
         self.send_json({"error": "not found"}, status=404)
 
     def do_POST(self) -> None:
-        if self.path not in {"/api/ask", "/api/feedback"}:
+        path = urlparse(self.path).path
+        if path not in {"/api/ask", "/api/feedback", "/api/admin/todos"}:
             self.send_json({"error": "not found"}, status=404)
             return
         if not check_auth(normalized_headers(self), getattr(self.server, "api_key", "")):
@@ -1286,10 +1317,15 @@ class RAGRequestHandler(BaseHTTPRequestHandler):
         try:
             length = int(self.headers.get("Content-Length", "0"))
             payload = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
-            if self.path == "/api/feedback":
+            if path == "/api/feedback":
                 response, status = handle_feedback_payload(
                     payload,
                     log_path=getattr(self.server, "log_path", None),
+                    event_sink=getattr(self.server, "event_sink", None),
+                )
+            elif path == "/api/admin/todos":
+                response, status = handle_admin_todo_payload(
+                    payload,
                     event_sink=getattr(self.server, "event_sink", None),
                 )
             else:
