@@ -63,3 +63,32 @@ create index if not exists client_due_diligence_risk_status_idx
   on public.client_due_diligence (risk_level, status);
 
 alter table public.client_due_diligence enable row level security;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'interaction_events'
+      and policyname = 'anon can insert interaction events'
+  ) then
+    create policy "anon can insert interaction events"
+      on public.interaction_events
+      for insert
+      to anon
+      with check (true);
+  end if;
+
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and tablename = 'feedback_events'
+      and policyname = 'anon can insert feedback events'
+  ) then
+    create policy "anon can insert feedback events"
+      on public.feedback_events
+      for insert
+      to anon
+      with check (true);
+  end if;
+end $$;
