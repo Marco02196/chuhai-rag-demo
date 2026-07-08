@@ -7,6 +7,8 @@ from typing import Any
 
 ASK_TABLE = "interaction_events"
 FEEDBACK_TABLE = "feedback_events"
+DEFAULT_SUPABASE_URL = "https://dxzptxgykrvciihixdbj.supabase.co"
+DEFAULT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_pBtiO73Xaa_oouH5W5lwsA_U3X2xvhw"
 
 
 def truncate_value(value: Any, max_length: int = 2000) -> str:
@@ -17,19 +19,24 @@ def truncate_value(value: Any, max_length: int = 2000) -> str:
 
 
 class SupabaseEventClient:
-    def __init__(self, url: str, service_role_key: str, timeout_seconds: float = 2.5) -> None:
+    def __init__(self, url: str, api_key: str, timeout_seconds: float = 8.0) -> None:
         self.url = url.rstrip("/")
-        self.service_role_key = service_role_key.strip()
+        self.api_key = api_key.strip()
         self.timeout_seconds = timeout_seconds
 
     @classmethod
     def from_env(cls) -> "SupabaseEventClient | None":
-        url = os.environ.get("SUPABASE_URL", "").strip()
-        service_role_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
-        if not url or not service_role_key:
+        url = os.environ.get("SUPABASE_URL", "").strip() or DEFAULT_SUPABASE_URL
+        api_key = (
+            os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "").strip()
+            or os.environ.get("SUPABASE_ANON_KEY", "").strip()
+            or os.environ.get("SUPABASE_PUBLISHABLE_KEY", "").strip()
+            or DEFAULT_SUPABASE_PUBLISHABLE_KEY
+        )
+        if not url or not api_key:
             return None
-        timeout = float(os.environ.get("SUPABASE_EVENT_TIMEOUT_SECONDS", "2.5") or "2.5")
-        return cls(url=url, service_role_key=service_role_key, timeout_seconds=timeout)
+        timeout = float(os.environ.get("SUPABASE_EVENT_TIMEOUT_SECONDS", "8") or "8")
+        return cls(url=url, api_key=api_key, timeout_seconds=timeout)
 
     def record_event(self, event: dict) -> None:
         table, payload = supabase_payload_for_event(event)
@@ -44,8 +51,8 @@ class SupabaseEventClient:
             data=body,
             method="POST",
             headers={
-                "apikey": self.service_role_key,
-                "Authorization": f"Bearer {self.service_role_key}",
+                "apikey": self.api_key,
+                "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json; charset=utf-8",
                 "Prefer": "return=minimal",
             },
