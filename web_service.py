@@ -12,6 +12,7 @@ from urllib.parse import urlparse
 from uuid import uuid4
 
 from rag_answer import answer_question, retrieve_context
+from supabase_events import SupabaseEventClient, record_supabase_event
 
 
 DEFAULT_DB_PATH = Path(__file__).parent / "output" / "30tian_chuhai.sqlite"
@@ -940,6 +941,13 @@ def append_event(log_path: str | Path | None, event: dict) -> None:
             file.write(line + "\n")
 
 
+def persist_event(log_path: str | Path | None, event: dict, event_sink: object | None = None) -> None:
+    record = dict(event)
+    record.setdefault("created_at", utc_timestamp())
+    append_event(log_path, record)
+    record_supabase_event(event_sink, record)
+
+
 def ask_event_payload(
     *,
     request_id: str,
@@ -974,14 +982,18 @@ def ask_event_payload(
     }
 
 
-def handle_feedback_payload(payload: dict, log_path: str | Path | None) -> tuple[dict, int]:
+def handle_feedback_payload(
+    payload: dict,
+    log_path: str | Path | None,
+    event_sink: object | None = None,
+) -> tuple[dict, int]:
     request_id = str(payload.get("request_id") or "").strip()
     feedback = str(payload.get("feedback") or "").strip().lower()
     if not request_id:
         return {"error": "request_id is required"}, 400
     if feedback not in {"up", "down"}:
         return {"error": "feedback must be up or down"}, 400
-    append_event(
+    persist_event(
         log_path,
         {
             "event": "feedback",
@@ -989,6 +1001,7 @@ def handle_feedback_payload(payload: dict, log_path: str | Path | None) -> tuple
             "feedback": feedback,
             "answer_preview": truncate_text(str(payload.get("answer_preview") or ""), 240),
         },
+        event_sink=event_sink,
     )
     return {"ok": True}, 200
 
@@ -1043,6 +1056,7 @@ def handle_ask_payload(
     retriever: Callable[..., list[dict]] = retrieve_context,
     answerer: Callable[..., str] = answer_question,
     log_path: str | Path | None = None,
+    event_sink: object | None = None,
 ) -> tuple[dict, int]:
     started_at = time.perf_counter()
     request_id = str(payload.get("request_id") or uuid4())
@@ -1070,7 +1084,7 @@ def handle_ask_payload(
         "answer": answer,
         "sources": [source_payload(context) for context in contexts],
     }
-    append_event(
+    persist_event(
         log_path,
         ask_event_payload(
             request_id=request_id,
@@ -1083,6 +1097,7 @@ def handle_ask_payload(
             answer=answer,
             elapsed_ms=elapsed_ms,
         ),
+        event_sink=event_sink,
     )
     if bool(payload.get("debug", False)):
         response["contexts"] = contexts
@@ -1138,12 +1153,17 @@ class RAGRequestHandler(BaseHTTPRequestHandler):
             length = int(self.headers.get("Content-Length", "0"))
             payload = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
             if self.path == "/api/feedback":
-                response, status = handle_feedback_payload(payload, log_path=getattr(self.server, "log_path", None))
+                response, status = handle_feedback_payload(
+                    payload,
+                    log_path=getattr(self.server, "log_path", None),
+                    event_sink=getattr(self.server, "event_sink", None),
+                )
             else:
                 response, status = handle_ask_payload(
                     payload,
                     db_path=getattr(self.server, "db_path"),
                     log_path=getattr(self.server, "log_path", None),
+                    event_sink=getattr(self.server, "event_sink", None),
                 )
             self.send_json(response, status=status)
         except Exception as exc:
@@ -1165,6 +1185,9 @@ def run_server(host: str, port: int, db_path: Path, api_key: str = "", log_path:
     server.db_path = db_path
     server.api_key = api_key
     server.log_path = log_path
+    server.event_sink = SupabaseEventClient.from_env()
+    if server.event_sink:
+        print("Supabase event sink enabled", flush=True)
     print(f"Serving 30天出海指挥部 RAG on http://{host}:{port}")
     server.serve_forever()
 
