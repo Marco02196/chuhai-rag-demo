@@ -836,12 +836,15 @@ function renderAnswer(wrap,text,sources,requestId){
     content.querySelectorAll('.fb-btn').forEach(x=>x.classList.remove('up','dn'));
     b.classList.add(b.dataset.v);
     if(!requestId)return;
+    const isDown=b.dataset.v==='dn';
+    const reason=isDown?(prompt('这条回答哪里需要改进？例如：没答到点 / 太空泛 / 来源不对 / 建议不可执行 / 需要人工跟进')||'').trim():'';
     fetch(CFG.FEEDBACK,{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+S.token},
       body:JSON.stringify({
         request_id:requestId,
-        feedback:b.dataset.v==='up'?'up':'down',
+        feedback:isDown?'down':'up',
+        reason,
         answer_preview:String(text).slice(0,200)
       })
     }).catch(()=>{});
