@@ -9,6 +9,7 @@ from web_service import (
     check_readiness,
     check_supabase_status,
     handle_admin_analytics,
+    handle_admin_todo_payload,
     handle_ask_payload,
     handle_feedback_payload,
     render_admin_html,
@@ -30,6 +31,10 @@ class FakeEventSink:
         payload = dict(self.analytics)
         payload["limit"] = limit
         return payload
+
+    def create_knowledge_todo(self, **payload):
+        self.todo = dict(payload)
+        return {"id": "todo-1", **payload}
 
 
 class WebServiceTest(unittest.TestCase):
@@ -101,8 +106,10 @@ class WebServiceTest(unittest.TestCase):
 
         self.assertIn("Northstar Analytics", html)
         self.assertIn("/api/admin/analytics", html)
+        self.assertIn("/api/admin/todos", html)
         self.assertIn("Authorization", html)
         self.assertIn("recent_questions", html)
+        self.assertIn("knowledge_todos", html)
 
     def test_handle_ask_payload_requires_question(self):
         response, status = handle_ask_payload(
@@ -256,7 +263,7 @@ class WebServiceTest(unittest.TestCase):
     def test_handle_feedback_payload_sends_event_to_optional_sink(self):
         sink = FakeEventSink()
         response, status = handle_feedback_payload(
-            {"request_id": "req-1", "feedback": "down", "answer_preview": "不够具体"},
+            {"request_id": "req-1", "feedback": "down", "reason": "太空泛", "answer_preview": "不够具体"},
             log_path=None,
             event_sink=sink,
         )
@@ -265,6 +272,7 @@ class WebServiceTest(unittest.TestCase):
         self.assertTrue(response["ok"])
         self.assertEqual(sink.events[0]["event"], "feedback")
         self.assertEqual(sink.events[0]["feedback"], "down")
+        self.assertEqual(sink.events[0]["reason"], "太空泛")
 
     def test_handle_feedback_payload_validates_feedback(self):
         response, status = handle_feedback_payload({"request_id": "req-1", "feedback": "maybe"}, log_path=None)
@@ -303,6 +311,30 @@ class WebServiceTest(unittest.TestCase):
         self.assertEqual(response["totals"]["questions"], 1)
         self.assertEqual(response["limit"], 7)
 
+    def test_handle_admin_todo_payload_requires_question(self):
+        response, status = handle_admin_todo_payload({}, event_sink=FakeEventSink())
+
+        self.assertEqual(status, 400)
+        self.assertIn("question", response["error"])
+
+    def test_handle_admin_todo_payload_creates_knowledge_todo(self):
+        sink = FakeEventSink()
+        response, status = handle_admin_todo_payload(
+            {
+                "request_id": "req-low",
+                "question": "这个问题没有命中",
+                "category_key": "ad_strategy",
+                "source_count": 0,
+                "priority": "high",
+            },
+            event_sink=sink,
+        )
+
+        self.assertEqual(status, 200)
+        self.assertTrue(response["ok"])
+        self.assertEqual(sink.todo["request_id"], "req-low")
+        self.assertEqual(sink.todo["priority"], "high")
+
     def test_supabase_ask_payload_maps_to_interaction_events_without_secrets(self):
         table, payload = supabase_payload_for_event(
             {
@@ -336,12 +368,14 @@ class WebServiceTest(unittest.TestCase):
                 "event": "feedback",
                 "request_id": "req-1",
                 "feedback": "up",
+                "reason": "没答到点",
                 "answer_preview": "有帮助",
             }
         )
 
         self.assertEqual(table, "feedback_events")
         self.assertEqual(payload["feedback"], "up")
+        self.assertEqual(payload["reason"], "没答到点")
         self.assertEqual(payload["answer_preview"], "有帮助")
 
 
