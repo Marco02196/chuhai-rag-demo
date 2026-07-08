@@ -22,4 +22,4 @@ services:
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
       - key: SUPABASE_EVENT_TIMEOUT_SECONDS
-        value: "2.5"
+        value: "8"
