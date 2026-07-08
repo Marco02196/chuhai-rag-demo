@@ -922,6 +922,82 @@ def render_app_html() -> str:
     return DEFAULT_APP_UI_PATH.read_text(encoding="utf-8")
 
 
+def render_admin_html() -> str:
+    return """<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Northstar Analytics</title>
+<style>
+:root{--bg:#f6f8fb;--panel:#fff;--ink:#122033;--muted:#6b7890;--line:#dce3ee;--blue:#3662f4;--green:#1a9f73;--red:#d44747;--shadow:0 18px 50px rgba(20,35,60,.10);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",sans-serif;}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink)}.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 48px}.top{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px}.brand{font-size:28px;font-weight:800;letter-spacing:0}.sub{color:var(--muted);margin-top:6px}.pill{border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:#fff;color:var(--muted);font-size:13px}.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow)}.metric{padding:18px}.metric b{display:block;font-size:28px;line-height:1.1}.metric span{display:block;color:var(--muted);font-size:13px;margin-top:8px}.main{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}.section{padding:18px}.section h2{font-size:16px;margin:0 0 14px}.bars{display:flex;flex-direction:column;gap:10px}.bar-row{display:grid;grid-template-columns:96px 1fr 42px;gap:10px;align-items:center;font-size:13px;color:var(--muted)}.bar{height:9px;background:#edf1f7;border-radius:999px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#3662f4,#64a5ff);border-radius:inherit}.list{display:flex;flex-direction:column;gap:10px}.item{padding:12px;border:1px solid var(--line);border-radius:8px;background:#fbfcff}.q{font-size:14px;line-height:1.5}.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px;color:var(--muted);font-size:12px}.tag{border:1px solid var(--line);border-radius:999px;padding:3px 8px;background:#fff}.danger{color:var(--red)}.ok{color:var(--green)}.auth{max-width:420px;margin:12vh auto;padding:24px}.auth h1{margin:0 0 8px}.auth input{width:100%;height:44px;border:1px solid var(--line);border-radius:8px;padding:0 12px;font-size:15px;margin:14px 0 10px}.btn{height:42px;border:0;border-radius:8px;background:var(--blue);color:white;font-weight:700;padding:0 16px;cursor:pointer}.err{color:var(--red);font-size:13px;margin-top:10px}.hidden{display:none}@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.main{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}}@media(max-width:520px){.grid{grid-template-columns:1fr}.wrap{padding:18px 12px}.brand{font-size:24px}}
+</style>
+</head>
+<body>
+<div id="auth" class="auth card">
+  <h1>Northstar Analytics</h1>
+  <div class="sub">输入访问码查看运营数据。</div>
+  <input id="code" placeholder="访问码" />
+  <button class="btn" id="enter">进入后台</button>
+  <div class="err" id="err"></div>
+</div>
+<div id="app" class="wrap hidden">
+  <div class="top">
+    <div><div class="brand">Northstar Analytics</div><div class="sub">真实提问、反馈和知识库缺口。</div></div>
+    <div class="pill" id="updated">等待加载</div>
+  </div>
+  <div class="grid" id="metrics"></div>
+  <div class="main">
+    <div class="card section"><h2>最近真实问题</h2><div class="list" id="recent"></div></div>
+    <div>
+      <div class="card section" style="margin-bottom:16px"><h2>分类分布</h2><div class="bars" id="categories"></div></div>
+      <div class="card section" style="margin-bottom:16px"><h2>低命中问题</h2><div class="list" id="lowSources"></div></div>
+      <div class="card section"><h2>负反馈</h2><div class="list" id="negative"></div></div>
+    </div>
+  </div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const params=new URLSearchParams(location.search);
+const saved=sessionStorage.getItem('admin_code')||params.get('code')||'';
+$('code').value=saved;
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+function fmtTime(v){try{return new Date(v).toLocaleString('zh-CN',{hour12:false});}catch{return v||''}}
+function metric(label,value,cls=''){return `<div class="card metric"><b class="${cls}">${esc(value)}</b><span>${esc(label)}</span></div>`}
+function item(q,m=[]){return `<div class="item"><div class="q">${esc(q||'')}</div><div class="meta">${m.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div></div>`}
+function renderBars(el, rows, key){const max=Math.max(1,...rows.map(r=>r.count||0));el.innerHTML=rows.length?rows.map(r=>`<div class="bar-row"><span>${esc(r[key]||'unknown')}</span><div class="bar"><i style="width:${Math.max(6,(r.count||0)/max*100)}%"></i></div><b>${r.count||0}</b></div>`).join(''):'<div class="sub">暂无数据</div>'}
+async function load(){
+  const code=$('code').value.trim();
+  if(!code){$('err').textContent='请输入访问码';return}
+  $('err').textContent='';
+  const res=await fetch('/api/admin/analytics',{headers:{Authorization:'Bearer '+code}});
+  if(!res.ok){$('err').textContent='访问码不正确或后台暂不可用';return}
+  sessionStorage.setItem('admin_code',code);
+  const d=await res.json();
+  $('auth').classList.add('hidden');$('app').classList.remove('hidden');
+  const t=d.totals||{};
+  $('metrics').innerHTML=[
+    metric('累计问题',t.questions||0),
+    metric('平均耗时',`${t.avg_elapsed_ms||0} ms`),
+    metric('平均引用数',t.avg_source_count||0),
+    metric('有用反馈',t.feedback_up||0,'ok'),
+    metric('负反馈',t.feedback_down||0,'danger')
+  ].join('');
+  $('updated').textContent='更新于 '+fmtTime(d.generated_at);
+  renderBars($('categories'),d.by_category||[],'category_key');
+  $('recent').innerHTML=(d.recent_questions||[]).map(x=>item(x.question,[x.category_key||'unknown',x.depth||'standard',`引用 ${x.source_count??0}`,fmtTime(x.created_at)])).join('')||'<div class="sub">暂无问题</div>';
+  $('lowSources').innerHTML=(d.low_source_questions||[]).map(x=>item(x.question,[x.category_key||'unknown',`引用 ${x.source_count??0}`,fmtTime(x.created_at)])).join('')||'<div class="sub">暂无低命中问题</div>';
+  $('negative').innerHTML=(d.negative_feedback||[]).map(x=>item(x.answer_preview||x.request_id,[fmtTime(x.created_at)])).join('')||'<div class="sub">暂无负反馈</div>';
+}
+$('enter').addEventListener('click',load);
+$('code').addEventListener('keydown',e=>{if(e.key==='Enter')load()});
+if(saved)load();
+</script>
+</body>
+</html>"""
+
+
 def utc_timestamp() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
@@ -1072,6 +1148,16 @@ def check_supabase_status(event_sink: object | None = None) -> dict:
     }
 
 
+def handle_admin_analytics(event_sink: object | None, limit: int = 20) -> tuple[dict, int]:
+    if not event_sink:
+        return {"error": "supabase event sink is not enabled"}, 503
+    try:
+        return event_sink.fetch_admin_analytics(limit=limit), 200
+    except Exception as exc:
+        print(f"admin_analytics_error type={type(exc).__name__}", flush=True)
+        return {"error": "analytics unavailable"}, 503
+
+
 def handle_ask_payload(
     payload: dict,
     db_path: str | Path,
@@ -1149,6 +1235,21 @@ class RAGRequestHandler(BaseHTTPRequestHandler):
         if path == "/supabasez":
             self.send_json(check_supabase_status(getattr(self.server, "event_sink", None)))
             return
+        if path == "/api/admin/analytics":
+            if not check_auth(normalized_headers(self), getattr(self.server, "api_key", "")):
+                self.send_json({"error": "unauthorized"}, status=401)
+                return
+            query = urlparse(self.path).query
+            limit = 20
+            for part in query.split("&"):
+                if part.startswith("limit="):
+                    try:
+                        limit = int(part.removeprefix("limit="))
+                    except ValueError:
+                        limit = 20
+            response, status = handle_admin_analytics(getattr(self.server, "event_sink", None), limit=limit)
+            self.send_json(response, status=status)
+            return
         if path in {"/", "/index.html"}:
             body = render_index_html().encode("utf-8")
             self.send_response(200)
@@ -1159,6 +1260,14 @@ class RAGRequestHandler(BaseHTTPRequestHandler):
             return
         if path in {"/app", "/app.html"}:
             body = render_app_html().encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
+        if path in {"/admin", "/admin.html"}:
+            body = render_admin_html().encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
