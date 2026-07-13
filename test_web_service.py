@@ -116,6 +116,14 @@ class WebServiceTest(unittest.TestCase):
         self.assertIn("else if(saved){verify(saved);}", html)
         self.assertNotIn("else if(saved){S.token=saved;hideGate();}", html)
 
+    def test_render_app_html_includes_mobile_overflow_guards(self):
+        html = render_app_html()
+
+        self.assertIn("overflow-x:hidden", html)
+        self.assertIn("min-width:0", html)
+        self.assertIn("safe-area-inset-bottom", html)
+        self.assertIn("@media(max-width:560px)", html.replace(" ", ""))
+
     def test_render_admin_html_includes_analytics_app(self):
         html = render_admin_html()
 
