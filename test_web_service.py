@@ -5,6 +5,7 @@ from tempfile import TemporaryDirectory
 from pathlib import Path
 
 from web_service import (
+    SlidingWindowRateLimiter,
     check_auth,
     check_readiness,
     check_supabase_status,
@@ -56,6 +57,11 @@ class WebServiceTest(unittest.TestCase):
 
         self.assertFalse(check_auth(headers, expected_api_key="secret"))
 
+    def test_check_auth_rejects_hardcoded_legacy_code_when_config_changes(self):
+        headers = {"authorization": "Bearer fb300"}
+
+        self.assertFalse(check_auth(headers, expected_api_key="new-secret"))
+
     def test_render_index_html_includes_northstar_access_gate(self):
         html = render_index_html()
 
@@ -101,6 +107,25 @@ class WebServiceTest(unittest.TestCase):
         self.assertIn("半夜空烧怎么拦截", html)
         self.assertIn("Pixel/CAPI 回传怎么配置", html)
 
+    def test_render_app_html_verifies_session_and_scrubs_code_from_url(self):
+        html = render_app_html()
+
+        self.assertIn("VERIFY:'/api/session/verify'", html)
+        self.assertIn("history.replaceState", html)
+        self.assertIn('name="referrer" content="no-referrer"', html)
+        self.assertIn("else if(saved){verify(saved);}", html)
+        self.assertIn("尝试次数过多，请稍后再试", html)
+        self.assertIn("访问码不正确，请重新输入", html)
+        self.assertNotIn("else if(saved){S.token=saved;hideGate();}", html)
+
+    def test_render_app_html_includes_mobile_overflow_guards(self):
+        html = render_app_html()
+
+        self.assertIn("overflow-x:hidden", html)
+        self.assertIn("min-width:0", html)
+        self.assertIn("safe-area-inset-bottom", html)
+        self.assertIn("@media(max-width:560px)", html.replace(" ", ""))
+
     def test_render_admin_html_includes_analytics_app(self):
         html = render_admin_html()
 
@@ -121,6 +146,20 @@ class WebServiceTest(unittest.TestCase):
 
         self.assertEqual(status, 400)
         self.assertIn("question", response["error"])
+
+    def test_handle_ask_payload_rejects_question_over_1000_chars_before_retrieval(self):
+        def unexpected_retriever(**kwargs):
+            raise AssertionError("retriever must not run")
+
+        response, status = handle_ask_payload(
+            {"question": "问" * 1001},
+            db_path="unused.sqlite",
+            retriever=unexpected_retriever,
+            answerer=lambda *args, **kwargs: "unused",
+        )
+
+        self.assertEqual(status, 400)
+        self.assertIn("1000", response["error"])
 
     def test_handle_ask_payload_returns_answer_sources_and_contexts(self):
         contexts = [
@@ -244,6 +283,26 @@ class WebServiceTest(unittest.TestCase):
 
         self.assertEqual(status, 200)
         self.assertEqual(response["contexts"][0]["id"], "a")
+
+    def test_sliding_window_rate_limiter_blocks_thirteenth_request(self):
+        now = [100.0]
+        limiter = SlidingWindowRateLimiter(limit=12, window_seconds=60, clock=lambda: now[0])
+
+        for _ in range(12):
+            self.assertEqual(limiter.allow("client-a"), (True, 0))
+        allowed, retry_after = limiter.allow("client-a")
+
+        self.assertFalse(allowed)
+        self.assertEqual(retry_after, 60)
+
+    def test_sliding_window_rate_limiter_recovers_after_window(self):
+        now = [100.0]
+        limiter = SlidingWindowRateLimiter(limit=1, window_seconds=60, clock=lambda: now[0])
+        self.assertEqual(limiter.allow("client-a"), (True, 0))
+
+        now[0] = 160.1
+
+        self.assertEqual(limiter.allow("client-a"), (True, 0))
 
     def test_handle_feedback_payload_writes_feedback_event(self):
         with TemporaryDirectory() as temp_dir:

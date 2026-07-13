@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<meta name="referrer" content="no-referrer"/>
 <title>Northstar · 北极星 — 出海投放决策引擎</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,7 +31,7 @@
   --r8:8px;--r12:12px;--r16:16px;--r20:20px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;}
+html,body{height:100%;width:100%;overflow-x:hidden;}
 body{
   font-family:var(--sans);
   background:var(--ink);
@@ -219,10 +220,13 @@ body{
 /* ═══════════════ 主界面 SHELL ═══════════════ */
 .shell{
   position:relative;z-index:2;
-  max-width:760px;margin:0 auto;
+  width:100%;min-width:0;max-width:760px;margin:0 auto;
   display:flex;flex-direction:column;
   height:100vh;height:100dvh;
   padding:0 clamp(16px,3vw,24px);
+}
+.hdr,.hdr-right,.chat-area,.empty,.quick-chips,.composer,.composer-box,.composer-footer{
+  min-width:0;max-width:100%;
 }
 
 /* 顶栏 */
@@ -270,8 +274,8 @@ body{
   font-size:clamp(26px,4vw,34px);color:var(--paper);
 }
 .empty-title .it{font-style:italic;color:var(--accent);}
-.empty-sub{font-size:12.5px;color:var(--faint);letter-spacing:.06em;}
-.quick-chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px;max-width:480px;}
+.empty-sub{font-size:12.5px;color:var(--faint);letter-spacing:.06em;overflow-wrap:anywhere;}
+.quick-chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px;width:100%;max-width:480px;}
 .qchip{
   border-radius:999px;padding:8px 18px;
   font-size:12.5px;color:var(--dim);
@@ -291,6 +295,7 @@ body{
   border:1px solid rgba(138,180,248,.2);
   border-radius:18px 18px 4px 18px;
   padding:12px 18px;font-size:14px;color:var(--paper);line-height:1.7;
+  overflow-wrap:anywhere;
 }
 
 .msg-ai{display:flex;gap:14px;align-items:flex-start;}
@@ -307,7 +312,7 @@ body{
   font-size:10.5px;color:var(--faint);letter-spacing:.14em;
   font-family:var(--mono);text-transform:uppercase;margin-bottom:10px;
 }
-.ai-text{font-size:14px;color:var(--body);line-height:1.9;}
+.ai-text{font-size:14px;color:var(--body);line-height:1.9;overflow-wrap:anywhere;}
 
 /* typing / skeleton */
 .typing{display:flex;gap:5px;align-items:center;padding:6px 0;}
@@ -355,7 +360,7 @@ body{
   padding:2px 9px;border-radius:999px;
 }
 .src-sc{font-size:10.5px;color:var(--faint);font-family:var(--mono);}
-.src-text{font-size:12.5px;color:var(--dim);line-height:1.7;}
+.src-text{font-size:12.5px;color:var(--dim);line-height:1.7;overflow-wrap:anywhere;}
 
 /* 反馈 */
 .fb-row{display:flex;align-items:center;gap:7px;margin-top:12px;}
@@ -474,6 +479,29 @@ body{
   transition:.15s;font-family:var(--sans);
 }
 .dr-scene:hover{color:var(--accent);padding-left:10px;}
+
+@media(max-width:560px){
+  .shell{padding:0 14px;}
+  .hdr{padding:14px 0 10px;gap:8px;}
+  .hdr .logo{font-size:17px;}
+  .hdr-right{gap:6px;}
+  .sess-pill{padding:6px 10px;}
+  .empty{min-height:50vh;gap:12px;padding:8px 0;}
+  .empty-title{font-size:28px;}
+  .empty-sub{font-size:11.5px;letter-spacing:0;}
+  .quick-chips{gap:7px;margin-top:8px;}
+  .qchip{padding:7px 12px;font-size:12px;}
+  .msg{margin-bottom:22px;}
+  .msg-ai{gap:10px;}
+  .bubble-user{max-width:88%;padding:10px 14px;}
+  .composer{padding:6px 0 calc(12px + env(safe-area-inset-bottom));}
+  .composer-box{padding:13px 13px 10px;}
+  .composer-footer{gap:8px;}
+  .composer-left{min-width:0;gap:5px;}
+  .hint-chip{padding:5px 9px;font-size:10.5px;}
+  .send-btn{padding:9px 16px;}
+  .drawer{width:min(300px,92vw);}
+}
 
 @media (prefers-reduced-motion:reduce){
   .aurora,.beam,.grain,.polaris,.empty-star{animation:none;}
@@ -626,7 +654,7 @@ body{
 </div>
 
 <script>
-const CFG={QUERY:'/api/ask',FEEDBACK:'/api/feedback',COLD_MS:3000,TIMEOUT_MS:60000};
+const CFG={VERIFY:'/api/session/verify',QUERY:'/api/ask',FEEDBACK:'/api/feedback',COLD_MS:3000,TIMEOUT_MS:60000};
 const S={intent:'综合诊断',kb:'全部',depth:'标准',token:null,lastAns:null};
 
 const CATEGORY_BY_LABEL={
@@ -680,7 +708,15 @@ async function verify(code){
   gateSub.disabled=true;gateSub.classList.add('loading');
   setGateStatus('','正在验证…');
   try{
-    await new Promise(r=>setTimeout(r,320));
+    const response=await fetch(CFG.VERIFY,{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+v}
+    });
+    if(!response.ok){
+      throw new Error(response.status===429
+        ? '尝试次数过多，请稍后再试'
+        : '访问码不正确，请重新输入');
+    }
     S.token=v;
     sessionStorage.setItem('access_code',S.token);
     setGateStatus('ok','验证通过，正在进入…');
@@ -694,10 +730,15 @@ async function verify(code){
 gateSub.addEventListener('click',()=>verify(gateIn.value));
 gateIn.addEventListener('keydown',e=>{if(e.key==='Enter')verify(gateIn.value);});
 (()=>{
-  const p=new URLSearchParams(location.search).get('code');
+  const url=new URL(location.href);
+  const p=url.searchParams.get('code');
+  if(p){
+    url.searchParams.delete('code');
+    history.replaceState(null,'',url.pathname+(url.search?'?'+url.searchParams.toString():'')+url.hash);
+  }
   const saved=sessionStorage.getItem('access_code');
   if(p){gateIn.value=p;setGateStatus('','检测到直链，自动验证中…');setTimeout(()=>verify(p),500);}
-  else if(saved){S.token=saved;hideGate();}
+  else if(saved){verify(saved);}
   else setTimeout(()=>gateIn.focus(),700);
 })();
 
@@ -886,13 +927,24 @@ async function submit(){
       showGate('访问码不正确，请重新输入');
       return;
     }
-    if(!r.ok)throw new Error(data.error||'生成失败，请稍后重试');
+    if(!r.ok){
+      const err=new Error(data.error||'生成失败，请稍后重试');
+      err.status=r.status;
+      throw err;
+    }
     clearTimeout(coldT);
     renderAnswer(loadEl,data.answer||'没有生成有效回答，请换个问题重试。',data.sources||[],data.request_id);
   }catch(e){
     clearTimeout(coldT);
+    input.value=text;autoResize();input.focus();
     const c=loadEl.querySelector('.ai-content');
-    const msg=e.name==='AbortError'?'等待超时，知识库或模型可能正在冷启动，请稍后重试。':(e.message||'网络错误');
+    const msg=e.status===429
+      ? '请求过于频繁，请稍后再试。'
+      : e.status===400
+        ? (e.message||'问题内容不符合要求，请检查后重试。')
+        : e.name==='AbortError'
+          ? '等待超时，知识库或模型可能正在冷启动，请稍后重试。'
+          : (e.message||'网络错误');
     if(c)c.innerHTML=`<div class="err-text">生成失败，请稍后重试。如持续失败请联系项目负责人。${esc(msg)}</div>`;
   }finally{clearTimeout(timeoutT);sendBtn.disabled=false;scrollBottom();}
 }

@@ -4,6 +4,7 @@ import json
 import os
 import sqlite3
 import time
+from math import ceil
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Lock
@@ -25,6 +26,7 @@ DEFAULT_LOG_PATH = Path(__file__).parent / "output" / "interaction_events.jsonl"
 DEFAULT_UI_PATH = Path(__file__).parent / "web_ui.html"
 DEFAULT_APP_UI_PATH = Path(__file__).parent / "web_app.html"
 DEFAULT_ADMIN_UI_PATH = Path(__file__).parent / "web_admin.html"
+MAX_QUESTION_LENGTH = 1000
 EVENT_LOG_LOCK = Lock()
 
 
@@ -1101,16 +1103,10 @@ def check_auth(headers: dict[str, str], expected_api_key: str | None) -> bool:
     expected_api_key = (expected_api_key or "").strip()
     if not expected_api_key:
         return True
-    allowed_api_keys = {expected_api_key, "fb300"}
     authorization = headers.get("authorization", "").strip()
     if authorization.startswith("Bearer "):
-        bearer_token = authorization.removeprefix("Bearer ").strip()
-        if bearer_token in allowed_api_keys:
-            return True
-    x_api_key = headers.get("x-api-key", "").strip()
-    if x_api_key in allowed_api_keys:
-        return True
-    return False
+        return authorization.removeprefix("Bearer ").strip() == expected_api_key
+    return headers.get("x-api-key", "").strip() == expected_api_key
 
 
 def source_payload(context: dict) -> dict:
@@ -1201,6 +1197,8 @@ def handle_ask_payload(
     question = str(payload.get("question") or "").strip()
     if not question:
         return {"error": "question is required"}, 400
+    if len(question) > MAX_QUESTION_LENGTH:
+        return {"error": f"question must be at most {MAX_QUESTION_LENGTH} characters"}, 400
     limit = int(payload.get("limit") or 5)
     limit = max(1, min(limit, 8))
     category_key = payload.get("category_key") or None
@@ -1242,14 +1240,47 @@ def handle_ask_payload(
     return response, 200
 
 
+class SlidingWindowRateLimiter:
+    def __init__(self, limit: int = 12, window_seconds: int = 60, clock: Callable[[], float] = time.monotonic):
+        self.limit = limit
+        self.window_seconds = window_seconds
+        self.clock = clock
+        self._events: dict[str, list[float]] = {}
+        self._lock = Lock()
+
+    def allow(self, key: str) -> tuple[bool, int]:
+        now = self.clock()
+        cutoff = now - self.window_seconds
+        with self._lock:
+            events = [timestamp for timestamp in self._events.get(key, []) if timestamp > cutoff]
+            if len(events) >= self.limit:
+                self._events[key] = events
+                return False, max(1, ceil(self.window_seconds - (now - events[0])))
+            events.append(now)
+            self._events[key] = events
+            return True, 0
+
+
+def request_client_ip(handler: BaseHTTPRequestHandler) -> str:
+    forwarded_for = handler.headers.get("X-Forwarded-For", "")
+    if forwarded_for:
+        first_ip = forwarded_for.split(",")[0].strip()
+        if first_ip:
+            return first_ip
+    return str(handler.client_address[0])
+
+
 class RAGRequestHandler(BaseHTTPRequestHandler):
     server_version = "RAGPrototype/0.1"
 
-    def send_json(self, payload: dict, status: int = 200) -> None:
+    def send_json(self, payload: dict, status: int = 200, headers: dict[str, str] | None = None) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        if headers:
+            for name, value in headers.items():
+                self.send_header(name, value)
         self.end_headers()
         self.wfile.write(body)
 
@@ -1308,13 +1339,24 @@ class RAGRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
-        if path not in {"/api/ask", "/api/feedback", "/api/admin/todos"}:
+        if path not in {"/api/ask", "/api/feedback", "/api/admin/todos", "/api/session/verify"}:
             self.send_json({"error": "not found"}, status=404)
+            return
+        allowed, retry_after = getattr(self.server, "rate_limiter").allow(request_client_ip(self))
+        if not allowed:
+            self.send_json(
+                {"error": "too many requests"},
+                status=429,
+                headers={"Retry-After": str(retry_after)},
+            )
             return
         if not check_auth(normalized_headers(self), getattr(self.server, "api_key", "")):
             self.send_json({"error": "unauthorized"}, status=401)
             return
         try:
+            if path == "/api/session/verify":
+                self.send_json({"ok": True})
+                return
             length = int(self.headers.get("Content-Length", "0"))
             payload = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
             if path == "/api/feedback":
@@ -1355,6 +1397,7 @@ def run_server(host: str, port: int, db_path: Path, api_key: str = "", log_path:
     server.db_path = db_path
     server.api_key = api_key
     server.log_path = log_path
+    server.rate_limiter = SlidingWindowRateLimiter()
     server.event_sink = SupabaseEventClient.from_env()
     if server.event_sink:
         print("Supabase event sink enabled", flush=True)
