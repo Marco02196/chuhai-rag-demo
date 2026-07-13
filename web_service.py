@@ -1101,16 +1101,10 @@ def check_auth(headers: dict[str, str], expected_api_key: str | None) -> bool:
     expected_api_key = (expected_api_key or "").strip()
     if not expected_api_key:
         return True
-    allowed_api_keys = {expected_api_key, "fb300"}
     authorization = headers.get("authorization", "").strip()
     if authorization.startswith("Bearer "):
-        bearer_token = authorization.removeprefix("Bearer ").strip()
-        if bearer_token in allowed_api_keys:
-            return True
-    x_api_key = headers.get("x-api-key", "").strip()
-    if x_api_key in allowed_api_keys:
-        return True
-    return False
+        return authorization.removeprefix("Bearer ").strip() == expected_api_key
+    return headers.get("x-api-key", "").strip() == expected_api_key
 
 
 def source_payload(context: dict) -> dict:
@@ -1308,13 +1302,16 @@ class RAGRequestHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
-        if path not in {"/api/ask", "/api/feedback", "/api/admin/todos"}:
+        if path not in {"/api/ask", "/api/feedback", "/api/admin/todos", "/api/session/verify"}:
             self.send_json({"error": "not found"}, status=404)
             return
         if not check_auth(normalized_headers(self), getattr(self.server, "api_key", "")):
             self.send_json({"error": "unauthorized"}, status=401)
             return
         try:
+            if path == "/api/session/verify":
+                self.send_json({"ok": True})
+                return
             length = int(self.headers.get("Content-Length", "0"))
             payload = json.loads(self.rfile.read(length).decode("utf-8") or "{}")
             if path == "/api/feedback":

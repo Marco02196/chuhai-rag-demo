@@ -56,6 +56,11 @@ class WebServiceTest(unittest.TestCase):
 
         self.assertFalse(check_auth(headers, expected_api_key="secret"))
 
+    def test_check_auth_rejects_hardcoded_legacy_code_when_config_changes(self):
+        headers = {"authorization": "Bearer fb300"}
+
+        self.assertFalse(check_auth(headers, expected_api_key="new-secret"))
+
     def test_render_index_html_includes_northstar_access_gate(self):
         html = render_index_html()
 
@@ -100,6 +105,13 @@ class WebServiceTest(unittest.TestCase):
         self.assertIn("烧钱没单怎么办", html)
         self.assertIn("半夜空烧怎么拦截", html)
         self.assertIn("Pixel/CAPI 回传怎么配置", html)
+
+    def test_render_app_html_verifies_session_and_scrubs_code_from_url(self):
+        html = render_app_html()
+
+        self.assertIn("VERIFY:'/api/session/verify'", html)
+        self.assertIn("history.replaceState", html)
+        self.assertIn('name="referrer" content="no-referrer"', html)
 
     def test_render_admin_html_includes_analytics_app(self):
         html = render_admin_html()
