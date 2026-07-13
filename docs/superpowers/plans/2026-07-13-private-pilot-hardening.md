@@ -426,4 +426,3 @@ Confirm:
 - [ ] **Step 6: Hand off for customer approval**
 
 Provide the customer URL and report: deployment status, unit-test count, desktop/mobile verification, authentication behavior, request duration, and any remaining limitation. State clearly that this is a controlled private pilot, not a multi-tenant paid product.
-
