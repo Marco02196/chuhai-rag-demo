@@ -112,6 +112,8 @@ class WebServiceTest(unittest.TestCase):
         self.assertIn("VERIFY:'/api/session/verify'", html)
         self.assertIn("history.replaceState", html)
         self.assertIn('name="referrer" content="no-referrer"', html)
+        self.assertIn("else if(saved){verify(saved);}", html)
+        self.assertNotIn("else if(saved){S.token=saved;hideGate();}", html)
 
     def test_render_admin_html_includes_analytics_app(self):
         html = render_admin_html()

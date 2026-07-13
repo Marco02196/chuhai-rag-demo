@@ -711,7 +711,7 @@ gateIn.addEventListener('keydown',e=>{if(e.key==='Enter')verify(gateIn.value);})
   }
   const saved=sessionStorage.getItem('access_code');
   if(p){gateIn.value=p;setGateStatus('','检测到直链，自动验证中…');setTimeout(()=>verify(p),500);}
-  else if(saved){S.token=saved;hideGate();}
+  else if(saved){verify(saved);}
   else setTimeout(()=>gateIn.focus(),700);
 })();
 
