@@ -5,6 +5,7 @@ from tempfile import TemporaryDirectory
 from pathlib import Path
 
 from web_service import (
+    SlidingWindowRateLimiter,
     check_auth,
     check_readiness,
     check_supabase_status,
@@ -136,6 +137,20 @@ class WebServiceTest(unittest.TestCase):
         self.assertEqual(status, 400)
         self.assertIn("question", response["error"])
 
+    def test_handle_ask_payload_rejects_question_over_1000_chars_before_retrieval(self):
+        def unexpected_retriever(**kwargs):
+            raise AssertionError("retriever must not run")
+
+        response, status = handle_ask_payload(
+            {"question": "闂?" * 1001},
+            db_path="unused.sqlite",
+            retriever=unexpected_retriever,
+            answerer=lambda *args, **kwargs: "unused",
+        )
+
+        self.assertEqual(status, 400)
+        self.assertIn("1000", response["error"])
+
     def test_handle_ask_payload_returns_answer_sources_and_contexts(self):
         contexts = [
             {
@@ -258,6 +273,26 @@ class WebServiceTest(unittest.TestCase):
 
         self.assertEqual(status, 200)
         self.assertEqual(response["contexts"][0]["id"], "a")
+
+    def test_sliding_window_rate_limiter_blocks_thirteenth_request(self):
+        now = [100.0]
+        limiter = SlidingWindowRateLimiter(limit=12, window_seconds=60, clock=lambda: now[0])
+
+        for _ in range(12):
+            self.assertEqual(limiter.allow("client-a"), (True, 0))
+        allowed, retry_after = limiter.allow("client-a")
+
+        self.assertFalse(allowed)
+        self.assertEqual(retry_after, 60)
+
+    def test_sliding_window_rate_limiter_recovers_after_window(self):
+        now = [100.0]
+        limiter = SlidingWindowRateLimiter(limit=1, window_seconds=60, clock=lambda: now[0])
+        self.assertEqual(limiter.allow("client-a"), (True, 0))
+
+        now[0] = 160.1
+
+        self.assertEqual(limiter.allow("client-a"), (True, 0))
 
     def test_handle_feedback_payload_writes_feedback_event(self):
         with TemporaryDirectory() as temp_dir:
