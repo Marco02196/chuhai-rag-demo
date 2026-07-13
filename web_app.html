@@ -714,8 +714,8 @@ async function verify(code){
     });
     if(!response.ok){
       throw new Error(response.status===429
-        ? '灏濊瘯娆℃暟杩囧锛岃绋嶅悗鍐嶈瘯'
-        : '璁块棶鐮佷笉姝ｇ‘锛岃閲嶆柊杈撳叆');
+        ? '尝试次数过多，请稍后再试'
+        : '访问码不正确，请重新输入');
     }
     S.token=v;
     sessionStorage.setItem('access_code',S.token);

@@ -114,6 +114,8 @@ class WebServiceTest(unittest.TestCase):
         self.assertIn("history.replaceState", html)
         self.assertIn('name="referrer" content="no-referrer"', html)
         self.assertIn("else if(saved){verify(saved);}", html)
+        self.assertIn("尝试次数过多，请稍后再试", html)
+        self.assertIn("访问码不正确，请重新输入", html)
         self.assertNotIn("else if(saved){S.token=saved;hideGate();}", html)
 
     def test_render_app_html_includes_mobile_overflow_guards(self):
@@ -150,7 +152,7 @@ class WebServiceTest(unittest.TestCase):
             raise AssertionError("retriever must not run")
 
         response, status = handle_ask_payload(
-            {"question": "闂?" * 1001},
+            {"question": "问" * 1001},
             db_path="unused.sqlite",
             retriever=unexpected_retriever,
             answerer=lambda *args, **kwargs: "unused",
